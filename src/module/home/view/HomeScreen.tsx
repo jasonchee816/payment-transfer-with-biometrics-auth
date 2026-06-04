@@ -7,14 +7,13 @@ import {
   ScrollView,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../../../App';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<Main.RootStackParamList, 'Home'>;
 
 type QuickAction = {
   label: string;
   icon: string;
-  screen: keyof RootStackParamList;
+  screen: keyof Main.RootStackParamList;
 };
 
 const QUICK_ACTIONS: QuickAction[] = [

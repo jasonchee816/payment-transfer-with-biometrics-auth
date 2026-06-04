@@ -7,9 +7,8 @@ import {
   Vibration,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../../../App';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'PinCode'>;
+type Props = NativeStackScreenProps<Main.TransferStackParamList, 'PinCode'>;
 
 const PIN_LENGTH = 6;
 
@@ -24,7 +23,8 @@ function PinDot({ filled }: { filled: boolean }) {
   return <View style={[styles.dot, filled && styles.dotFilled]} />;
 }
 
-export default function PinCodeScreen({ navigation }: Props) {
+export default function PinCodeScreen({ navigation, route }: Props) {
+  const { transactionId, recipientName, amount } = route.params;
   const [pin, setPin] = React.useState('');
   const [error, setError] = React.useState(false);
 
@@ -49,7 +49,7 @@ export default function PinCodeScreen({ navigation }: Props) {
     // Stub: accept any 6-digit PIN for demo purposes
     const isValid = code.length === PIN_LENGTH;
     if (isValid) {
-      navigation.goBack();
+      navigation.navigate('TransferSuccess', { transactionId, recipientName, amount });
     } else {
       Vibration.vibrate([0, 50, 50, 50]);
       setError(true);

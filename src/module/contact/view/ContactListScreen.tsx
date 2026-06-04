@@ -8,9 +8,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../../../App';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ContactList'>;
+type Props = NativeStackScreenProps<Main.TransferStackParamList, 'ContactList'>;
 
 type Contact = {
   id: string;
@@ -70,7 +69,7 @@ export default function ContactListScreen({ navigation }: Props) {
   );
 
   const handleSelect = (_contact: Contact) => {
-    navigation.navigate('Transfer');
+    navigation.navigate('TransferForm');
   };
 
   return (
