@@ -6,43 +6,79 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../../../App';
+import { useMutation } from '@tanstack/react-query';
+import { submitTransfer } from '../src/api';
+import { useDebugStore } from '../../debug/hooks/DebugStore';
+import FixedDecimalCurrencyInput from '../../../component/FixedDecimalCurrencyInput';
+import type { FixedDecimalCurrencyInputRef } from '../../../component/FixedDecimalCurrencyInput';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Transfer'>;
+type Props = NativeStackScreenProps<Main.TransferStackParamList, 'TransferForm'>;
 
-export default function TransferScreen({ navigation }: Props) {
-  const [amount, setAmount] = React.useState('');
-  const [recipient, setRecipient] = React.useState('');
+export default function TransferScreen({ navigation, route }: Props) {
+  const { recipientId, recipientName } = route.params;
+  const [amount, setAmount] = React.useState(0);
   const [note, setNote] = React.useState('');
+  const { flags } = useDebugStore();
+  const currencyInputRef = React.useRef<FixedDecimalCurrencyInputRef>(null);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: submitTransfer,
+    onSuccess: response => {
+      navigation.navigate('PinCode', {
+        transactionId: response.transactionId,
+        recipientName,
+        amount: amount.toFixed(2),
+      });
+    },
+    onError: error => {
+      Alert.alert(
+        'Transfer Error',
+        error instanceof Error ? error.message : 'Something went wrong.',
+      );
+    },
+  });
 
   const handleContinue = () => {
-    navigation.navigate('PinCode');
+    mutate({
+      recipientId,
+      recipientName,
+      amount,
+      note: note || undefined,
+      simulateFailure: flags.simulateTransferFailure,
+    });
   };
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.label}>Recipient</Text>
-      <TouchableOpacity
-        style={styles.recipientSelector}
-        onPress={() => navigation.navigate('ContactList')}>
-        <Text style={[styles.recipientText, !recipient && styles.placeholder]}>
-          {recipient || 'Select a contact'}
-        </Text>
-        <Text style={styles.chevron}>›</Text>
-      </TouchableOpacity>
+  const isReady = amount > 0 && !isPending;
 
-      <Text style={styles.label}>Amount</Text>
-      <View style={styles.amountContainer}>
-        <Text style={styles.currencySymbol}>$</Text>
-        <TextInput
-          style={styles.amountInput}
-          placeholder="0.00"
-          placeholderTextColor="#8E8E93"
-          keyboardType="decimal-pad"
-          value={amount}
-          onChangeText={setAmount}
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled">
+
+      {/* Recipient row — tap Change to go back to ContactList */}
+      <View style={styles.recipientCard}>
+        <View style={styles.recipientInfo}>
+          <Text style={styles.recipientLabel}>To</Text>
+          <Text style={styles.recipientName}>{recipientName}</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.changeText}>Change</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Amount — cash-register input */}
+      <View style={styles.amountCard}>
+        <Text style={styles.amountLabel}>Amount</Text>
+        <FixedDecimalCurrencyInput
+          ref={currencyInputRef}
+          amount={amount}
+          setAmount={setAmount}
+          containerStyle={styles.currencyInput}
         />
       </View>
 
@@ -57,10 +93,14 @@ export default function TransferScreen({ navigation }: Props) {
       />
 
       <TouchableOpacity
-        style={[styles.button, (!amount || !recipient) && styles.buttonDisabled]}
+        style={[styles.button, !isReady && styles.buttonDisabled]}
         onPress={handleContinue}
-        disabled={!amount || !recipient}>
-        <Text style={styles.buttonText}>Continue</Text>
+        disabled={!isReady}>
+        {isPending ? (
+          <ActivityIndicator color="#FFFFFF" />
+        ) : (
+          <Text style={styles.buttonText}>Continue</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -73,7 +113,55 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    gap: 8,
+    gap: 12,
+  },
+  recipientCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  recipientInfo: {
+    gap: 2,
+  },
+  recipientLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  recipientName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  changeText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#007AFF',
+  },
+  amountCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  amountLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6E6E73',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  currencyInput: {
+    width: '100%',
+    minHeight: 64,
   },
   label: {
     fontSize: 13,
@@ -81,47 +169,6 @@ const styles = StyleSheet.create({
     color: '#6E6E73',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  recipientSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-  },
-  recipientText: {
-    fontSize: 16,
-    color: '#000000',
-  },
-  placeholder: {
-    color: '#8E8E93',
-  },
-  chevron: {
-    fontSize: 20,
-    color: '#C7C7CC',
-  },
-  amountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-  },
-  currencySymbol: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000000',
-    marginRight: 4,
-  },
-  amountInput: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000000',
-    paddingVertical: 16,
   },
   noteInput: {
     backgroundColor: '#FFFFFF',
@@ -137,7 +184,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 12,
   },
   buttonDisabled: {
     backgroundColor: '#C7C7CC',

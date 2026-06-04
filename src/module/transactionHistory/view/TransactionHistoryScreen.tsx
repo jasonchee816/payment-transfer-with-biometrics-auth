@@ -5,38 +5,28 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../../../App';
+import { useQuery } from '@tanstack/react-query';
+import { fetchTransactions } from '../src/api';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'TransactionHistory'>;
-
-type Transaction = {
-  id: string;
-  name: string;
-  date: string;
-  amount: string;
-  type: 'sent' | 'received';
-};
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: '1', name: 'Alice Johnson', date: 'Jun 4, 2026', amount: '$120.00', type: 'sent' },
-  { id: '2', name: 'Bob Smith', date: 'Jun 3, 2026', amount: '$50.00', type: 'received' },
-  { id: '3', name: 'Carol White', date: 'Jun 2, 2026', amount: '$230.00', type: 'sent' },
-  { id: '4', name: 'David Lee', date: 'Jun 1, 2026', amount: '$75.50', type: 'received' },
-  { id: '5', name: 'Emma Davis', date: 'May 31, 2026', amount: '$400.00', type: 'sent' },
-  { id: '6', name: 'Frank Miller', date: 'May 30, 2026', amount: '$18.99', type: 'received' },
-  { id: '7', name: 'Grace Wilson', date: 'May 29, 2026', amount: '$95.00', type: 'sent' },
-];
+type Props = NativeStackScreenProps<Main.RootStackParamList, 'TransactionHistory'>;
 
 function Separator() {
   return <View style={styles.separator} />;
 }
 
-function TransactionItem({ item }: { item: Transaction }) {
+function TransactionItem({
+  item,
+  onPress,
+}: {
+  item: TransactionHistory.Transaction;
+  onPress: (item: TransactionHistory.Transaction) => void;
+}) {
   const isSent = item.type === 'sent';
   return (
-    <View style={styles.transactionItem}>
+    <TouchableOpacity style={styles.transactionItem} onPress={() => onPress(item)}>
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>{item.name[0]}</Text>
       </View>
@@ -44,26 +34,58 @@ function TransactionItem({ item }: { item: Transaction }) {
         <Text style={styles.transactionName}>{item.name}</Text>
         <Text style={styles.transactionDate}>{item.date}</Text>
       </View>
-      <Text style={[styles.transactionAmount, isSent ? styles.sent : styles.received]}>
-        {isSent ? '-' : '+'}{item.amount}
-      </Text>
-    </View>
+      <View style={styles.transactionRight}>
+        <Text style={[styles.transactionAmount, isSent ? styles.sent : styles.received]}>
+          {isSent ? '-' : '+'}{item.amount}
+        </Text>
+        <Text style={styles.chevron}>›</Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 
 export default function TransactionHistoryScreen({ navigation }: Props) {
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: fetchTransactions,
+  });
+
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Failed to load transactions.</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={MOCK_TRANSACTIONS}
+        data={data?.transactions ?? []}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => <TransactionItem item={item} />}
+        renderItem={({ item }) => (
+          <TransactionItem
+            item={item}
+            onPress={t => navigation.navigate('TransactionHistoryDetail', t)}
+          />
+        )}
         ItemSeparatorComponent={Separator}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Total Sent</Text>
-            <Text style={styles.summaryAmount}>$845.00</Text>
+            <Text style={styles.summaryAmount}>{data?.totalSent}</Text>
             <TouchableOpacity
               style={styles.transferButton}
               onPress={() => navigation.navigate('Transfer')}>
@@ -80,6 +102,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    backgroundColor: '#F2F2F7',
+  },
+  errorText: {
+    fontSize: 15,
+    color: '#8E8E93',
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+  },
+  retryText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   listContent: {
     padding: 16,
@@ -147,9 +193,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#8E8E93',
   },
+  transactionRight: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 4,
+  },
   transactionAmount: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  chevron: {
+    fontSize: 18,
+    color: '#C7C7CC',
+    alignSelf: 'center',
   },
   sent: {
     color: '#FF3B30',

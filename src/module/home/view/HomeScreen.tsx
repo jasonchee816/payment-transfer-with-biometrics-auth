@@ -18,8 +18,7 @@ type QuickAction = {
 
 const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Send', icon: '↑', screen: 'Transfer' },
-  { label: 'Contacts', icon: '👥', screen: 'ContactList' },
-  { label: 'History', icon: '📋', screen: 'TransactionHistory' },
+  { label: 'History', icon: '→', screen: 'TransactionHistory' },
 ];
 
 const RECENT = [

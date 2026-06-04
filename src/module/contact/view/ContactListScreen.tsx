@@ -68,8 +68,11 @@ export default function ContactListScreen({ navigation }: Props) {
     c.name.toLowerCase().includes(query.toLowerCase()),
   );
 
-  const handleSelect = (_contact: Contact) => {
-    navigation.navigate('TransferForm');
+  const handleSelect = (contact: Contact) => {
+    navigation.navigate('TransferForm', {
+      recipientId: contact.id,
+      recipientName: contact.name,
+    });
   };
 
   return (
