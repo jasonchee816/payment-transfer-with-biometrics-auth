@@ -1,24 +1,27 @@
 import React from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import MainNavigationStack from './src/module/main/view/MainNavigationStack';
+import { DebugStoreProvider } from './src/module/debug/hooks/DebugStore';
+import FloatingDebugButton from './src/module/debug/view/FloatingDebugButton';
 
 const queryClient = new QueryClient();
 
 export default function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <NavigationContainer>
-          <MainNavigationStack />
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <DebugStoreProvider>
+        <SafeAreaProvider>
+          <StatusBar barStyle={'dark-content'} />
+          <NavigationContainer>
+            <MainNavigationStack />
+          </NavigationContainer>
+          <FloatingDebugButton />
+        </SafeAreaProvider>
+      </DebugStoreProvider>
     </QueryClientProvider>
   );
 }
