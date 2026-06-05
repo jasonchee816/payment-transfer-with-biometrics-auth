@@ -1,9 +1,9 @@
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { BodyText, BoldText, CaptionText, HeadingText } from '../../../component/AppText';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootRoutes } from '../../main/constants/routes';
 import { TransferRoutes } from '../constants';
@@ -27,36 +27,36 @@ export default function TransferSuccessScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <View style={styles.iconContainer}>
         <View style={styles.iconCircle}>
-          <Text style={styles.iconText}>✓</Text>
+          <HeadingText size={40} color="#FFFFFF">✓</HeadingText>
         </View>
       </View>
 
-      <Text style={styles.title}>Transfer Sent!</Text>
-      <Text style={styles.subtitle}>Your money is on its way</Text>
+      <HeadingText style={styles.title}>Transfer Sent!</HeadingText>
+      <BodyText color="#8E8E93" style={styles.subtitle}>Your money is on its way</BodyText>
 
       <View style={styles.summaryCard}>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Amount</Text>
-          <Text style={styles.summaryValue}>${amount}</Text>
+          <BodyText color="#8E8E93">Amount</BodyText>
+          <BoldText>${amount}</BoldText>
         </View>
         <View style={styles.divider} />
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>To</Text>
-          <Text style={styles.summaryValue}>{recipientName}</Text>
+          <BodyText color="#8E8E93">To</BodyText>
+          <BoldText>{recipientName}</BoldText>
         </View>
         <View style={styles.divider} />
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Reference</Text>
-          <Text style={styles.summaryRef}>{transactionId}</Text>
+          <BodyText color="#8E8E93">Reference</BodyText>
+          <CaptionText weight="500" style={styles.summaryRef}>{transactionId}</CaptionText>
         </View>
       </View>
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.primaryButton} onPress={handleDone}>
-          <Text style={styles.primaryButtonText}>Done</Text>
+          <BoldText size={17} color="#FFFFFF">Done</BoldText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.secondaryButton} onPress={handleViewHistory}>
-          <Text style={styles.secondaryButtonText}>View History</Text>
+          <BoldText size={17} color="#007AFF">View History</BoldText>
         </TouchableOpacity>
       </View>
     </View>
@@ -88,20 +88,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  iconText: {
-    fontSize: 40,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#000000',
     marginBottom: 6,
   },
   subtitle: {
-    fontSize: 15,
-    color: '#8E8E93',
     marginBottom: 32,
   },
   summaryCard: {
@@ -118,19 +108,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
-  summaryLabel: {
-    fontSize: 15,
-    color: '#8E8E93',
-  },
-  summaryValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#000000',
-  },
   summaryRef: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#8E8E93',
     fontVariant: ['tabular-nums'],
   },
   divider: {
@@ -148,20 +126,10 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
-  primaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
   secondaryButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',
-  },
-  secondaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#007AFF',
   },
 });

@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import {
   View,
-  Text,
   FlatList,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { BoldText, CaptionText } from '../../../component/AppText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TransactionHistoryRoutes } from '../constants';
 import { useTransactions } from '../hooks/query/useTransactions';
@@ -58,9 +58,11 @@ export default function TransactionHistoryScreen({ navigation }: Props) {
   if (isError) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>Failed to load transactions.</Text>
+        <CaptionText size={15} align="center" style={styles.errorText}>
+          Failed to load transactions.
+        </CaptionText>
         <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryText}>Retry</Text>
+          <BoldText color="#FFFFFF">Retry</BoldText>
         </TouchableOpacity>
       </View>
     );
@@ -110,9 +112,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   errorText: {
-    fontSize: 15,
-    color: '#8E8E93',
-    textAlign: 'center',
     paddingHorizontal: 32,
   },
   retryButton: {
@@ -121,43 +120,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 28,
   },
-  retryText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
   listContent: {
     padding: 16,
     gap: 0,
-  },
-  summaryCard: {
-    backgroundColor: '#007AFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 4,
-  },
-  summaryAmount: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 16,
-  },
-  transferButton: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-  },
-  transferButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   itemFirst: {
     borderTopLeftRadius: 14,

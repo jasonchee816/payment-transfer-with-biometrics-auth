@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
+import { BodyText } from './AppText';
 
 type Props = {
   onPress?: () => void;
@@ -17,9 +18,13 @@ export default function HeaderBackButton({ onPress, isClose = false }: Props) {
   }
   return (
     <TouchableOpacity onPress={onPressBack} style={styles.button} hitSlop={8}>
-      <Text style={isClose ? styles.close : styles.chevron}>
+      <BodyText
+        size={isClose ? 17 : 28}
+        weight={isClose ? undefined : '300'}
+        color="#007AFF"
+        style={isClose ? styles.close : styles.chevron}>
         {isClose ? '✕' : '‹'}
-      </Text>
+      </BodyText>
     </TouchableOpacity>
   );
 }
@@ -30,16 +35,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chevron: {
-    fontSize: 28,
     lineHeight: 30,
-    color: '#007AFF',
-    fontWeight: '300',
   },
   close: {
-    fontSize: 17,
     lineHeight: 22,
-    color: '#007AFF',
-    fontWeight: '400',
   },
 });
 

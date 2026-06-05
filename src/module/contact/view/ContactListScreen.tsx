@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
 import {
   View,
-  Text,
   FlatList,
   TouchableOpacity,
   TextInput,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { LabelText, BoldText, CaptionText } from '../../../component/AppText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useDuitNowSearch } from '../hooks/mutation/useDuitNowSearch';
@@ -69,7 +69,7 @@ export default function ContactListScreen({ navigation }: Props) {
   const listHeader = (
     <View>
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>DuitNow</Text>
+        <LabelText size={13} style={styles.sectionLabel}>DuitNow</LabelText>
         <View style={styles.duitNowRow}>
           <TextInput
             ref={phoneInputRef}
@@ -92,17 +92,17 @@ export default function ContactListScreen({ navigation }: Props) {
             {duitNowSearch.isPending ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text style={styles.searchButtonText}>Search</Text>
+              <BoldText color="#FFFFFF">Search</BoldText>
             )}
           </TouchableOpacity>
         </View>
 
         {duitNowSearch.isError && (
-          <Text style={styles.duitNowError}>
+          <CaptionText color="#FF3B30" style={styles.duitNowError}>
             {duitNowSearch.error instanceof Error
               ? duitNowSearch.error.message
               : 'Something went wrong.'}
-          </Text>
+          </CaptionText>
         )}
 
         {duitNowSearch.isSuccess && duitNowSearch.data && (
@@ -114,7 +114,7 @@ export default function ContactListScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Contacts</Text>
+        <LabelText size={13} style={styles.sectionLabel}>Contacts</LabelText>
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -141,7 +141,7 @@ export default function ContactListScreen({ navigation }: Props) {
         ListHeaderComponent={listHeader}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No contacts found</Text>
+            <CaptionText size={16}>No contacts found</CaptionText>
           </View>
         }
         keyboardShouldPersistTaps="handled"
@@ -159,10 +159,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#8E8E93',
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -193,14 +189,7 @@ const styles = StyleSheet.create({
   searchButtonDisabled: {
     opacity: 0.6,
   },
-  searchButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
   duitNowError: {
-    fontSize: 13,
-    color: '#FF3B30',
     paddingHorizontal: 16,
     paddingTop: 8,
   },
@@ -223,9 +212,5 @@ const styles = StyleSheet.create({
   emptyState: {
     padding: 40,
     alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#8E8E93',
   },
 });

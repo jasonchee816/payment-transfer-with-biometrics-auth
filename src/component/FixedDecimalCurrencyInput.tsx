@@ -8,12 +8,12 @@ import {
 import {
   Animated,
   StyleSheet,
-  Text,
   TextInput,
   TouchableWithoutFeedback,
   View,
   ViewStyle,
 } from 'react-native';
+import { HeadingText } from './AppText';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -130,13 +130,16 @@ export default function FixedDecimalCurrencyInput({
           positioned relative to the full container width.
         */}
         <View style={styles.inputRow}>
-          <Text style={[styles.displayText, !amount && styles.inactive]}>
+          <HeadingText
+            size={48}
+            color={!amount ? '#C7C7CC' : undefined}
+            style={styles.displayText}>
             {dollarDisplay}
-          </Text>
+          </HeadingText>
 
           {isFocused && (
             <Animated.View style={{ opacity: cursorOpacity }}>
-              <Text style={styles.cursorText}>|</Text>
+              <HeadingText size={48} weight="300" color="#007AFF">|</HeadingText>
             </Animated.View>
           )}
         </View>
@@ -171,22 +174,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   displayText: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: '#000000',
     letterSpacing: -1,
-  },
-  inactive: {
-    color: '#C7C7CC',
   },
   hiddenInput: {
     height: 0,
     width: 0,
     position: 'absolute',
-  },
-  cursorText: {
-    fontSize: 48,
-    fontWeight: '300',
-    color: '#007AFF',
   },
 });

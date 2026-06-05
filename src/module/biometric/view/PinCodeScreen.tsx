@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   Image,
   TouchableOpacity,
   StyleSheet,
@@ -8,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { BodyText, HeadingText } from '../../../component/AppText';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useState } from 'react';
 import { isSensorAvailable, authenticateWithOptions, BiometricStrength } from '@sbaiahmed1/react-native-biometrics';
@@ -144,8 +144,8 @@ export default function PinCodeScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Enter PIN</Text>
-        <Text style={styles.subtitle}>Confirm your identity to proceed</Text>
+        <HeadingText size={26} style={styles.title}>Enter PIN</HeadingText>
+        <BodyText color="#8E8E93">Confirm your identity to proceed</BodyText>
       </View>
 
       <View style={styles.dotsRow}>
@@ -155,12 +155,12 @@ export default function PinCodeScreen({ navigation, route }: Props) {
       </View>
 
       {error && (
-        <Text style={styles.errorText}>
+        <BodyText size={14} color="#FF3B30" style={styles.errorText}>
           Incorrect PIN.{' '}
           {attemptsLeft === 1
             ? 'Last attempt before lockout.'
             : `${attemptsLeft} attempts remaining.`}
-        </Text>
+        </BodyText>
       )}
 
       {isProcessing ? (
@@ -197,9 +197,11 @@ export default function PinCodeScreen({ navigation, route }: Props) {
                     style={[styles.key, key === '⌫' && styles.keyBackspace]}
                     onPress={() => handleKey(key)}
                     activeOpacity={0.6}>
-                    <Text style={[styles.keyText, key === '⌫' && styles.keyBackspaceText]}>
+                    <BodyText
+                      size={key === '⌫' ? 22 : 26}
+                      color={key === '⌫' ? '#007AFF' : undefined}>
                       {key}
-                    </Text>
+                    </BodyText>
                   </TouchableOpacity>
                 );
               })}
@@ -224,14 +226,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#000000',
     marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#8E8E93',
   },
   dotsRow: {
     flexDirection: 'row',
@@ -250,8 +245,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
   },
   errorText: {
-    fontSize: 14,
-    color: '#FF3B30',
     marginBottom: 8,
   },
   spinner: {
@@ -282,15 +275,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     shadowOpacity: 0,
     elevation: 0,
-  },
-  keyText: {
-    fontSize: 26,
-    fontWeight: '400',
-    color: '#000000',
-  },
-  keyBackspaceText: {
-    fontSize: 22,
-    color: '#007AFF',
   },
   keyEmpty: {
     width: 78,

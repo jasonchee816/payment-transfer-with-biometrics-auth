@@ -1,13 +1,24 @@
 import { Fragment } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootRoutes } from '../../main/constants/routes';
+import { useAccountBalance } from '../../account/hooks/query/useAccountBalance';
+import SkeletonLoader from '../../../component/SkeletonLoader';
+import {
+  HeadingText,
+  TitleText,
+  BodyText,
+  BoldText,
+  CaptionText,
+  TextColors,
+} from '../../../component/AppText';
 
 type Props = NativeStackScreenProps<Main.RootStackParamList, 'Home'>;
 
@@ -29,14 +40,52 @@ const RECENT = [
 ];
 
 export default function HomeScreen({ navigation }: Props) {
+  const { width: windowWidth } = useWindowDimensions();
+  // content padding 16 each side + card padding 24 each side
+  const cardInnerWidth = windowWidth - 32 - 48;
+
+  const {
+    data: availableBalance,
+    isLoading: isBalanceLoading,
+    isRefetching: isBalanceRefetching,
+    refetch: refetchBalance,
+  } = useAccountBalance({
+    select: data => data?.balance.available,
+  });
+  const formattedBalance =
+    availableBalance
+      ? `RM ${availableBalance.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : null;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={isBalanceRefetching}
+          onRefresh={refetchBalance}
+          tintColor="#007AFF"
+        />
+      }>
       <View style={styles.balanceCard}>
-        <Text style={styles.balanceLabel}>Available Balance</Text>
-        <Text style={styles.balanceAmount}>$4,280.50</Text>
+        <BodyText size={14} color="rgba(255,255,255,0.75)" style={styles.balanceLabel}>
+          Available Balance
+        </BodyText>
+        <SkeletonLoader
+          width={cardInnerWidth * 0.85}
+          height={52}
+          visible={!isBalanceLoading}
+          shimmerColors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.35)', 'rgba(255,255,255,0.15)']}
+          shimmerStyle={styles.balanceSkeletonAmount}
+          style={styles.balanceSkeletonAmountWrapper}>
+          <HeadingText size={42} color={TextColors.inverse} style={styles.balanceAmount}>
+            {formattedBalance}
+          </HeadingText>
+        </SkeletonLoader>
       </View>
 
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
+      <TitleText style={styles.sectionTitle}>Quick Actions</TitleText>
       <View style={styles.quickActionsRow}>
         {QUICK_ACTIONS.map(action => (
           <TouchableOpacity
@@ -44,17 +93,21 @@ export default function HomeScreen({ navigation }: Props) {
             style={styles.quickAction}
             onPress={() => navigation.navigate(action.screen as any)}>
             <View style={styles.quickActionIcon}>
-              <Text style={styles.quickActionIconText}>{action.icon}</Text>
+              <BodyText size={20}>{action.icon}</BodyText>
             </View>
-            <Text style={styles.quickActionLabel}>{action.label}</Text>
+            <BodyText size={13} weight="500" color="#3C3C43">
+              {action.label}
+            </BodyText>
           </TouchableOpacity>
         ))}
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Recent Transfers</Text>
+        <TitleText style={styles.sectionTitle}>Recent Transfers</TitleText>
         <TouchableOpacity onPress={() => navigation.navigate(RootRoutes.TransactionHistory)}>
-          <Text style={styles.seeAll}>See All</Text>
+          <BodyText size={14} weight="500" color={TextColors.accent} style={styles.seeAll}>
+            See All
+          </BodyText>
         </TouchableOpacity>
       </View>
 
@@ -65,15 +118,19 @@ export default function HomeScreen({ navigation }: Props) {
             <Fragment key={item.id}>
               <View style={styles.recentItem}>
                 <View style={[styles.recentAvatar, { backgroundColor: item.color }]}>
-                  <Text style={styles.recentAvatarText}>{item.initials}</Text>
+                  <BoldText weight="700" color={TextColors.inverse}>
+                    {item.initials}
+                  </BoldText>
                 </View>
                 <View style={styles.recentInfo}>
-                  <Text style={styles.recentName}>{item.name}</Text>
-                  <Text style={styles.recentDate}>{item.date}</Text>
+                  <BodyText weight="500" style={styles.recentName}>
+                    {item.name}
+                  </BodyText>
+                  <CaptionText>{item.date}</CaptionText>
                 </View>
-                <Text style={[styles.recentAmount, isSent ? styles.sent : styles.received]}>
+                <BoldText style={isSent ? styles.sent : styles.received}>
                   {item.amount}
-                </Text>
+                </BoldText>
               </View>
               {index < RECENT.length - 1 && <View style={styles.divider} />}
             </Fragment>
@@ -100,30 +157,16 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   balanceLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
-    marginBottom: 6,
+    marginBottom: 10,
+  },
+  balanceSkeletonAmountWrapper: {
+    marginBottom: 20,
+  },
+  balanceSkeletonAmount: {
+    borderRadius: 10,
   },
   balanceAmount: {
-    fontSize: 42,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 20,
     letterSpacing: -1,
-  },
-  balanceActions: {
-    flexDirection: 'row',
-  },
-  primaryButton: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 28,
-  },
-  primaryButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -132,15 +175,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000000',
     marginBottom: 12,
   },
   seeAll: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '500',
     marginBottom: 12,
   },
   quickActionsRow: {
@@ -164,14 +201,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  quickActionIconText: {
-    fontSize: 20,
-  },
-  quickActionLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#3C3C43',
-  },
   recentList: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
@@ -190,27 +219,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  recentAvatarText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
   recentInfo: {
     flex: 1,
   },
   recentName: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#000000',
     marginBottom: 2,
-  },
-  recentDate: {
-    fontSize: 13,
-    color: '#8E8E93',
-  },
-  recentAmount: {
-    fontSize: 15,
-    fontWeight: '600',
   },
   sent: {
     color: '#FF3B30',

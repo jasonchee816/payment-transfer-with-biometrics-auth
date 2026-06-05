@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { TitleText, BoldText } from '../../../component/AppText';
 
 type Props = {
   result: Contact.DuitNowResult;
@@ -15,13 +16,13 @@ export default function DuitNowResultCard({ result, onPress }: Props) {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{initials}</Text>
+        <TitleText size={16} color="#FFFFFF">{initials}</TitleText>
       </View>
       <View style={styles.info}>
-        <Text style={styles.name}>{result.name}</Text>
+        <TitleText size={16} weight="500" style={styles.name}>{result.name}</TitleText>
       </View>
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>Select</Text>
+        <BoldText size={13} color="#FFFFFF">Select</BoldText>
       </View>
     </TouchableOpacity>
   );
@@ -49,33 +50,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
   info: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
     marginBottom: 2,
-  },
-  sub: {
-    fontSize: 13,
-    color: '#8E8E93',
   },
   badge: {
     backgroundColor: '#007AFF',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-  },
-  badgeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });

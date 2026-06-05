@@ -1,11 +1,11 @@
 import { Fragment, useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Switch,
   StyleSheet,
 } from 'react-native';
+import { BoldText, BodyText, CaptionText, LabelText } from '../../../component/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDebugStore } from '../hooks/DebugStore';
 
@@ -39,15 +39,15 @@ export default function FloatingDebugButton() {
       {open && (
         <View style={styles.panel}>
           <View style={styles.panelHeader}>
-            <Text style={styles.panelTitle}>Error Simulations</Text>
+            <LabelText size={13} style={styles.panelTitle}>Error Simulations</LabelText>
           </View>
           {ERROR_SCENARIOS.map((scenario, index) => (
             <Fragment key={scenario.key}>
               {index > 0 && <View style={styles.divider} />}
               <View style={styles.row}>
                 <View style={styles.rowLabels}>
-                  <Text style={styles.rowLabel}>{scenario.label}</Text>
-                  <Text style={styles.rowDescription}>{scenario.description}</Text>
+                  <BodyText weight="500" color="#FFFFFF">{scenario.label}</BodyText>
+                  <CaptionText size={12}>{scenario.description}</CaptionText>
                 </View>
                 <Switch
                   value={flags[scenario.key]}
@@ -65,7 +65,7 @@ export default function FloatingDebugButton() {
         style={[styles.fab, hasActiveFlag && styles.fabActive]}
         onPress={() => setOpen(prev => !prev)}
         activeOpacity={0.8}>
-        <Text style={styles.fabIcon}>{open ? 'X' : 'Debug'}</Text>
+        <BoldText size={11} weight="700" color="#FFFFFF" style={styles.fabIcon}>{open ? 'X' : 'Debug'}</BoldText>
       </TouchableOpacity>
     </View>
   );
@@ -95,9 +95,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
   },
   fabIcon: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   panel: {
@@ -119,10 +116,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#3A3A3C',
   },
   panelTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#8E8E93',
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   row: {
@@ -135,15 +128,6 @@ const styles = StyleSheet.create({
   rowLabels: {
     flex: 1,
     gap: 2,
-  },
-  rowLabel: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#FFFFFF',
-  },
-  rowDescription: {
-    fontSize: 12,
-    color: '#8E8E93',
   },
   divider: {
     height: StyleSheet.hairlineWidth,

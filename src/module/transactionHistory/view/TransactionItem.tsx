@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { BodyText, BoldText, CaptionText } from '../../../component/AppText';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 type Props = {
@@ -12,17 +13,17 @@ export default function TransactionItem({ item, onPress, style }: Props) {
   return (
     <TouchableOpacity style={[styles.container, style]} onPress={() => onPress(item)}>
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{item.name[0]}</Text>
+        <BoldText size={18} color="#3C3C43">{item.name[0]}</BoldText>
       </View>
       <View style={styles.details}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.date}>{item.date}</Text>
+        <BodyText size={16} weight="500" style={styles.name}>{item.name}</BodyText>
+        <CaptionText>{item.date}</CaptionText>
       </View>
       <View style={styles.right}>
-        <Text style={[styles.amount, isSent ? styles.sent : styles.received]}>
+        <BoldText size={16} color={isSent ? '#FF3B30' : '#34C759'}>
           {isSent ? '-' : '+'}{item.amount}
-        </Text>
-        <Text style={styles.chevron}>›</Text>
+        </BoldText>
+        <BodyText size={18} color="#C7C7CC" style={styles.chevron}>›</BodyText>
       </View>
     </TouchableOpacity>
   );
@@ -44,42 +45,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#3C3C43',
-  },
   details: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
     marginBottom: 2,
-  },
-  date: {
-    fontSize: 13,
-    color: '#8E8E93',
   },
   right: {
     alignItems: 'flex-end',
     flexDirection: 'row',
     gap: 4,
   },
-  amount: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
   chevron: {
-    fontSize: 18,
-    color: '#C7C7CC',
     alignSelf: 'center',
-  },
-  sent: {
-    color: '#FF3B30',
-  },
-  received: {
-    color: '#34C759',
   },
 });

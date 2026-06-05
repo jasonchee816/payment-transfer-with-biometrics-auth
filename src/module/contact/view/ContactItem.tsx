@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { TitleText, CaptionText, BodyText } from '../../../component/AppText';
 
 export type Contact = {
   id: string;
@@ -17,13 +18,13 @@ export default function ContactItem({ contact, onPress }: Props) {
   return (
     <TouchableOpacity style={styles.container} onPress={() => onPress(contact)}>
       <View style={[styles.avatar, { backgroundColor: contact.color }]}>
-        <Text style={styles.avatarText}>{contact.initials}</Text>
+        <TitleText size={16} color="#FFFFFF">{contact.initials}</TitleText>
       </View>
       <View style={styles.info}>
-        <Text style={styles.name}>{contact.name}</Text>
-        <Text style={styles.phone}>{contact.phone}</Text>
+        <TitleText size={16} weight="500" style={styles.name}>{contact.name}</TitleText>
+        <CaptionText>{contact.phone}</CaptionText>
       </View>
-      <Text style={styles.arrow}>›</Text>
+      <BodyText size={20} color="#C7C7CC">›</BodyText>
     </TouchableOpacity>
   );
 }
@@ -44,26 +45,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
   info: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
     marginBottom: 2,
-  },
-  phone: {
-    fontSize: 13,
-    color: '#8E8E93',
-  },
-  arrow: {
-    fontSize: 20,
-    color: '#C7C7CC',
   },
 });

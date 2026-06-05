@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -9,10 +8,12 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { BodyText, BoldText, CaptionText, LabelText } from '../../../component/AppText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSubmitTransfer } from '../hooks/mutation/useSubmitTransfer';
 import { useDebugStore } from '../../debug/hooks/DebugStore';
 import { TransferRoutes } from '../constants';
+import { useAccountBalance } from '../../account/hooks/query/useAccountBalance';
 import FixedDecimalCurrencyInput from '../../../component/FixedDecimalCurrencyInput';
 import type { FixedDecimalCurrencyInputRef } from '../../../component/FixedDecimalCurrencyInput';
 import { usePinCodeCallbacks } from '../../biometric/store/PinCodeCallbackContext';
@@ -28,6 +29,11 @@ export default function TransferScreen({ navigation, route }: Props) {
 
   const { mutateAsync, isPending } = useSubmitTransfer();
   const { register } = usePinCodeCallbacks();
+  const { data: availableBalance } = useAccountBalance({
+    select: data => data?.balance.available,
+  });
+
+  const isOverBalance = availableBalance !== undefined && amount > availableBalance;
 
   const handleContinue = () => {
     const transferRequest = {
@@ -62,7 +68,7 @@ export default function TransferScreen({ navigation, route }: Props) {
     });
   };
 
-  const isReady = amount > 0 && !isPending;
+  const isReady = amount > 0 && !isPending && !isOverBalance;
 
   return (
     <ScrollView
@@ -73,26 +79,36 @@ export default function TransferScreen({ navigation, route }: Props) {
       {/* Recipient row — tap Change to go back to ContactList */}
       <View style={styles.recipientCard}>
         <View style={styles.recipientInfo}>
-          <Text style={styles.recipientLabel}>To</Text>
-          <Text style={styles.recipientName}>{recipientName}</Text>
+          <LabelText weight="500">To</LabelText>
+          <BoldText size={16}>{recipientName}</BoldText>
         </View>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.changeText}>Change</Text>
+          <BodyText weight="500" color="#007AFF">Change</BodyText>
         </TouchableOpacity>
       </View>
 
       {/* Amount — cash-register input */}
-      <View style={styles.amountCard}>
-        <Text style={styles.amountLabel}>Amount</Text>
+      <View style={[styles.amountCard, isOverBalance && styles.amountCardError]}>
+        <LabelText size={13} color="#6E6E73" style={styles.amountLabel}>Amount</LabelText>
         <FixedDecimalCurrencyInput
           ref={currencyInputRef}
           amount={amount}
           setAmount={setAmount}
           containerStyle={styles.currencyInput}
         />
+        {availableBalance !== undefined && (
+          <CaptionText
+            style={styles.balanceText}
+            color={isOverBalance ? '#FF3B30' : undefined}
+            weight={isOverBalance ? '500' : undefined}>
+            {isOverBalance
+              ? `Exceeds available balance of RM ${availableBalance.toFixed(2)}`
+              : `Available: RM ${availableBalance.toFixed(2)}`}
+          </CaptionText>
+        )}
       </View>
 
-      <Text style={styles.label}>Note (optional)</Text>
+      <LabelText size={13} color="#6E6E73" style={styles.label}>Note (optional)</LabelText>
       <TextInput
         style={styles.noteInput}
         placeholder="What's it for?"
@@ -109,7 +125,7 @@ export default function TransferScreen({ navigation, route }: Props) {
         {isPending ? (
           <ActivityIndicator color="#FFFFFF" />
         ) : (
-          <Text style={styles.buttonText}>Continue</Text>
+          <BoldText size={17} color="#FFFFFF">Continue</BoldText>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -137,23 +153,6 @@ const styles = StyleSheet.create({
   recipientInfo: {
     gap: 2,
   },
-  recipientLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#8E8E93',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  recipientName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  changeText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#007AFF',
-  },
   amountCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -161,11 +160,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
   },
+  amountCardError: {
+    borderWidth: 1.5,
+    borderColor: '#FF3B30',
+  },
+  balanceText: {
+    marginTop: 8,
+  },
   amountLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6E6E73',
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 12,
   },
@@ -174,10 +176,6 @@ const styles = StyleSheet.create({
     minHeight: 64,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6E6E73',
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   noteInput: {
@@ -198,10 +196,5 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     backgroundColor: '#C7C7CC',
-  },
-  buttonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });

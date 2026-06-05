@@ -1,17 +1,15 @@
 import {
   View,
-  Text,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootRoutes } from '../../main/constants/routes';
+import { BodyText, CaptionText, HeadingText } from '../../../component/AppText';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TransactionHistoryRoutes } from '../constants';
 
 type Props = NativeStackScreenProps<Main.TransactionHistoryStackParamList, typeof TransactionHistoryRoutes.TransactionHistoryDetail>;
 
-export default function TransactionHistoryDetailScreen({ navigation, route }: Props) {
+export default function TransactionHistoryDetailScreen({ route }: Props) {
   const { id, name, date, amount, type } = route.params;
   const isSent = type === 'sent';
   const sign = isSent ? '-' : '+';
@@ -22,12 +20,12 @@ export default function TransactionHistoryDetailScreen({ navigation, route }: Pr
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.amountHeader}>
         <View style={[styles.avatar, { backgroundColor: isSent ? '#FFE5E5' : '#E5F9ED' }]}>
-          <Text style={styles.avatarIcon}>{isSent ? '↑' : '↓'}</Text>
+          <HeadingText>{isSent ? '↑' : '↓'}</HeadingText>
         </View>
-        <Text style={[styles.amount, { color: amountColor }]}>
+        <HeadingText size={40} color={amountColor} style={styles.amount}>
           {sign}{amount}
-        </Text>
-        <Text style={styles.typeLabel}>{typeLabel}</Text>
+        </HeadingText>
+        <CaptionText size={15}>{typeLabel}</CaptionText>
       </View>
 
       <View style={styles.card}>
@@ -39,16 +37,6 @@ export default function TransactionHistoryDetailScreen({ navigation, route }: Pr
         <RowDivider />
         <DetailRow label="Reference" value={id} mono />
       </View>
-
-      <TouchableOpacity
-        style={styles.transferButton}
-        onPress={() =>
-          navigation
-            .getParent<NativeStackNavigationProp<Main.RootStackParamList>>()
-            ?.navigate(RootRoutes.Transfer)
-      }>
-        <Text style={styles.transferButtonText}>Send Again</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -70,15 +58,18 @@ function DetailRow({
 }) {
   return (
     <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text
+      <CaptionText size={15}>{label}</CaptionText>
+      <BodyText
+        weight="500"
+        align="right"
+        size={mono ? 13 : undefined}
+        color={mono ? '#8E8E93' : valueColor}
         style={[
           styles.detailValue,
-          valueColor ? { color: valueColor } : undefined,
           mono ? styles.detailValueMono : undefined,
         ]}>
         {value}
-      </Text>
+      </BodyText>
     </View>
   );
 }
@@ -104,20 +95,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 16,
   },
-  avatarIcon: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#000000',
-  },
   amount: {
-    fontSize: 40,
-    fontWeight: '700',
     letterSpacing: -1,
     marginBottom: 4,
-  },
-  typeLabel: {
-    fontSize: 15,
-    color: '#8E8E93',
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -131,37 +111,15 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
-  detailLabel: {
-    fontSize: 15,
-    color: '#8E8E93',
-  },
   detailValue: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#000000',
     maxWidth: '55%',
-    textAlign: 'right',
   },
   detailValueMono: {
-    fontSize: 13,
-    color: '#8E8E93',
     fontVariant: ['tabular-nums'],
   },
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#E5E5EA',
     marginHorizontal: 16,
-  },
-  transferButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  transferButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });
