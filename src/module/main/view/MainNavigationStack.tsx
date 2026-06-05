@@ -1,17 +1,16 @@
-import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from '../../home/view/HomeScreen';
-import TransactionHistoryScreen from '../../transactionHistory/view/TransactionHistoryScreen';
-import TransactionHistoryDetailScreen from '../../transactionHistory/view/TransactionHistoryDetailScreen';
+import TransactionHistoryStack from '../../transactionHistory/view/TransactionHistoryStack';
 import TransferStack from '../../transfer/view/TransferStack';
+import { RootRoutes } from '../constants/routes';
 
 const Stack = createNativeStackNavigator<Main.RootStackParamList>();
 
 export default function MainNavigationStack() {
   return (
     <Stack.Navigator
-      initialRouteName="Home"
+      initialRouteName={RootRoutes.Home}
       screenOptions={{
         headerStyle: { backgroundColor: '#F2F2F7' },
         headerTitleStyle: { fontWeight: '600', fontSize: 17 },
@@ -19,22 +18,17 @@ export default function MainNavigationStack() {
         contentStyle: { backgroundColor: '#F2F2F7' },
       }}>
       <Stack.Screen
-        name="Home"
+        name={RootRoutes.Home}
         component={HomeScreen}
         options={{ title: 'My Wallet' }}
       />
       <Stack.Screen
-        name="TransactionHistory"
-        component={TransactionHistoryScreen}
-        options={{ title: 'History' }}
+        name={RootRoutes.TransactionHistory}
+        component={TransactionHistoryStack}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="TransactionHistoryDetail"
-        component={TransactionHistoryDetailScreen}
-        options={{ title: 'Transaction' }}
-      />
-      <Stack.Screen
-        name="Transfer"
+        name={RootRoutes.Transfer}
         component={TransferStack}
         options={{ headerShown: false }}
       />

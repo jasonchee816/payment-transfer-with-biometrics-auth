@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootRoutes } from '../../main/constants/routes';
 
 type Props = NativeStackScreenProps<Main.RootStackParamList, 'Home'>;
 
@@ -17,8 +18,8 @@ type QuickAction = {
 };
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Send', icon: '↑', screen: 'Transfer' },
-  { label: 'History', icon: '→', screen: 'TransactionHistory' },
+  { label: 'Send', icon: '↑', screen: RootRoutes.Transfer },
+  { label: 'History', icon: '→', screen: RootRoutes.TransactionHistory },
 ];
 
 const RECENT = [
@@ -33,13 +34,6 @@ export default function HomeScreen({ navigation }: Props) {
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>Available Balance</Text>
         <Text style={styles.balanceAmount}>$4,280.50</Text>
-        <View style={styles.balanceActions}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => navigation.navigate('Transfer')}>
-            <Text style={styles.primaryButtonText}>Send Money</Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
       <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -59,7 +53,7 @@ export default function HomeScreen({ navigation }: Props) {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Recent Transfers</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('TransactionHistory')}>
+        <TouchableOpacity onPress={() => navigation.navigate(RootRoutes.TransactionHistory)}>
           <Text style={styles.seeAll}>See All</Text>
         </TouchableOpacity>
       </View>
@@ -68,7 +62,7 @@ export default function HomeScreen({ navigation }: Props) {
         {RECENT.map((item, index) => {
           const isSent = item.amount.startsWith('-');
           return (
-            <React.Fragment key={item.id}>
+            <Fragment key={item.id}>
               <View style={styles.recentItem}>
                 <View style={[styles.recentAvatar, { backgroundColor: item.color }]}>
                   <Text style={styles.recentAvatarText}>{item.initials}</Text>
@@ -82,7 +76,7 @@ export default function HomeScreen({ navigation }: Props) {
                 </Text>
               </View>
               {index < RECENT.length - 1 && <View style={styles.divider} />}
-            </React.Fragment>
+            </Fragment>
           );
         })}
       </View>

@@ -2,28 +2,31 @@ declare namespace Main {
   type RootStackParamList = {
     Home: undefined;
     TransactionHistory: undefined;
-    TransactionHistoryDetail: {
+    Transfer: undefined;
+  };
+
+  type TransactionHistoryStackParamList = {
+    'TransactionHistory/TransactionHistoryList': undefined;
+    'TransactionHistory/TransactionHistoryDetail': {
       id: string;
       name: string;
       date: string;
       amount: string;
       type: 'sent' | 'received';
     };
-    Transfer: undefined;
   };
 
   type TransferStackParamList = {
-    ContactList: undefined;
-    TransferForm: {
+    'Transfer/ContactList': undefined;
+    'Transfer/TransferForm': {
       recipientId: string;
       recipientName: string;
     };
-    PinCode: {
-      transactionId: string;
+    'Transfer/PinCode': {
       recipientName: string;
       amount: string;
     };
-    TransferSuccess: {
+    'Transfer/TransferSuccess': {
       transactionId: string;
       recipientName: string;
       amount: string;

@@ -1,22 +1,29 @@
-import type { FetchTransactionsResponse } from '../../types';
+import ALL_TRANSACTIONS from '../data/transactions.json';
 
-const SIMULATED_DELAY_MS = 1000;
+export const FETCH_TRANSACTIONS = 'fetchTransactions';
 
-const MOCK_DATA: FetchTransactionsResponse = {
-  totalSent: '$845.00',
-  transactions: [
-    { id: '1', name: 'Alice Johnson', date: 'Jun 4, 2026', amount: '$120.00', type: 'sent' },
-    { id: '2', name: 'Bob Smith', date: 'Jun 3, 2026', amount: '$50.00', type: 'received' },
-    { id: '3', name: 'Carol White', date: 'Jun 2, 2026', amount: '$230.00', type: 'sent' },
-    { id: '4', name: 'David Lee', date: 'Jun 1, 2026', amount: '$75.50', type: 'received' },
-    { id: '5', name: 'Emma Davis', date: 'May 31, 2026', amount: '$400.00', type: 'sent' },
-    { id: '6', name: 'Frank Miller', date: 'May 30, 2026', amount: '$18.99', type: 'received' },
-    { id: '7', name: 'Grace Wilson', date: 'May 29, 2026', amount: '$95.00', type: 'sent' },
-  ],
-};
+const PAGE_SIZE_DEFAULT = 20;
+const SIMULATED_DELAY_MS = 800;
 
-export function fetchTransactions(): Promise<FetchTransactionsResponse> {
+const TOTAL_SENT = ALL_TRANSACTIONS.filter(t => t.type === 'sent')
+  .reduce((sum, t) => sum + parseFloat(t.amount.replace('$', '')), 0)
+  .toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+export function fetchTransactions({
+  page,
+  limit = PAGE_SIZE_DEFAULT,
+}: TransactionHistory.Api.FetchTransactionsParams): Promise<TransactionHistory.Api.FetchTransactionsResponse> {
   return new Promise(resolve => {
-    setTimeout(() => resolve(MOCK_DATA), SIMULATED_DELAY_MS);
+    setTimeout(() => {
+      const start = (page - 1) * limit;
+      const end = start + limit;
+      resolve({
+        transactions: ALL_TRANSACTIONS.slice(start, end) as TransactionHistory.Transaction[],
+        totalSent: TOTAL_SENT,
+        page,
+        hasNextPage: end < ALL_TRANSACTIONS.length,
+        total: ALL_TRANSACTIONS.length,
+      });
+    }, SIMULATED_DELAY_MS);
   });
 }
