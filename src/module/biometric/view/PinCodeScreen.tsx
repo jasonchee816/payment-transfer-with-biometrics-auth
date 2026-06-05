@@ -1,42 +1,117 @@
-import React from 'react';
 import {
   View,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
   Vibration,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useCallback, useEffect, useState } from 'react';
+import { isSensorAvailable, authenticateWithOptions, BiometricStrength } from '@sbaiahmed1/react-native-biometrics';
+import type { BiometricSensorInfo } from '@sbaiahmed1/react-native-biometrics';
+import { TransferRoutes } from '../../transfer/constants';
+import { CORRECT_PIN, KEYPAD, PIN_LENGTH } from '../constants';
+import { BiometricImages } from '../constants/images';
+import { usePinCodeCallbacks } from '../store/PinCodeCallbackContext';
+import {
+  getPinAttempts,
+  incrementPinAttempts,
+  isPinLocked,
+  MAX_PIN_ATTEMPTS,
+  resetPinAttempts,
+} from '../storage/pinStorage';
 
-type Props = NativeStackScreenProps<Main.TransferStackParamList, 'PinCode'>;
-
-const PIN_LENGTH = 6;
-
-const KEYPAD: (string | null)[][] = [
-  ['1', '2', '3'],
-  ['4', '5', '6'],
-  ['7', '8', '9'],
-  [null, '0', '⌫'],
-];
+type BiometryType = NonNullable<BiometricSensorInfo['biometryType']>;
+type Props = NativeStackScreenProps<Main.TransferStackParamList, typeof TransferRoutes.PinCode>;
 
 function PinDot({ filled }: { filled: boolean }) {
   return <View style={[styles.dot, filled && styles.dotFilled]} />;
 }
 
 export default function PinCodeScreen({ navigation, route }: Props) {
-  const { transactionId, recipientName, amount } = route.params;
-  const [pin, setPin] = React.useState('');
-  const [error, setError] = React.useState(false);
+  const { recipientName, amount } = route.params;
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState(false);
+  const [attemptsLeft, setAttemptsLeft] = useState(MAX_PIN_ATTEMPTS - getPinAttempts());
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [biometryType, setBiometryType] = useState<BiometryType | null>(null);
+  const { consume } = usePinCodeCallbacks();
+
+  const logout = useCallback(() => {
+    navigation
+      .getParent<NativeStackNavigationProp<Main.RootStackParamList>>()
+      ?.popToTop();
+    // To add actual auth and logout behaviour
+  }, [navigation]);
+
+  const handleLockout = useCallback(() => {
+    Alert.alert(
+      'Account Locked',
+      'Too many incorrect PIN attempts. Please log in again.',
+      [{ text: 'OK', onPress: logout }],
+    );
+  }, [logout]);
+
+  useEffect(() => {
+    if (isPinLocked()) {
+      handleLockout();
+    }
+  }, [handleLockout]);
+
+  const handleSuccess = useCallback(async () => {
+    resetPinAttempts();
+    const { onSuccess } = consume();
+    if (!onSuccess) return;
+    setIsProcessing(true);
+    try {
+      await onSuccess();
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [consume]);
+
+  const attemptBiometrics = useCallback(async () => {
+    try {
+      const { success } = await authenticateWithOptions({
+        title: 'Confirm Transfer',
+        subtitle: `Sending ${amount} to ${recipientName}`,
+        cancelLabel: 'Use PIN',
+        disableDeviceFallback: true,
+        biometricStrength: BiometricStrength.Strong,
+        allowDeviceCredentials: false,
+      });
+
+      if (success) {
+        handleSuccess();
+      }
+    } catch {
+      // auth failed or was cancelled — user can retry via the icon or use PIN
+    }
+  }, [handleSuccess, amount, recipientName]);
+
+  useEffect(() => {
+    isSensorAvailable().then(({ available, biometryType: type }) => {
+      if (available && type && type !== 'None' && type !== 'Unknown') {
+        setBiometryType(type);
+        attemptBiometrics();
+      }
+    });
+    // intentionally run only on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleKey = (key: string) => {
+    if (isProcessing) return;
     if (key === '⌫') {
       setPin(prev => prev.slice(0, -1));
       setError(false);
       return;
     }
-    if (pin.length >= PIN_LENGTH) {
-      return;
-    }
+    if (pin.length >= PIN_LENGTH) return;
+
     const next = pin + key;
     setPin(next);
 
@@ -46,16 +121,25 @@ export default function PinCodeScreen({ navigation, route }: Props) {
   };
 
   const verifyPin = (code: string) => {
-    // Stub: accept any 6-digit PIN for demo purposes
-    const isValid = code.length === PIN_LENGTH;
-    if (isValid) {
-      navigation.navigate('TransferSuccess', { transactionId, recipientName, amount });
+    if (code === CORRECT_PIN) {
+      handleSuccess();
+      return;
+    }
+
+    Vibration.vibrate();
+    const totalFailed = incrementPinAttempts();
+    const remaining = MAX_PIN_ATTEMPTS - totalFailed;
+
+    if (remaining <= 0) {
+      handleLockout();
     } else {
-      Vibration.vibrate([0, 50, 50, 50]);
       setError(true);
+      setAttemptsLeft(remaining);
       setPin('');
     }
   };
+
+  const showBiometricButton = biometryType !== null;
 
   return (
     <View style={styles.container}>
@@ -70,29 +154,59 @@ export default function PinCodeScreen({ navigation, route }: Props) {
         ))}
       </View>
 
-      {error && <Text style={styles.errorText}>Incorrect PIN. Please try again.</Text>}
+      {error && (
+        <Text style={styles.errorText}>
+          Incorrect PIN.{' '}
+          {attemptsLeft === 1
+            ? 'Last attempt before lockout.'
+            : `${attemptsLeft} attempts remaining.`}
+        </Text>
+      )}
 
-      <View style={styles.keypad}>
-        {KEYPAD.map((row, rowIdx) => (
-          <View key={rowIdx} style={styles.keypadRow}>
-            {row.map((key, colIdx) =>
-              key === null ? (
-                <View key={colIdx} style={styles.keyEmpty} />
-              ) : (
-                <TouchableOpacity
-                  key={colIdx}
-                  style={[styles.key, key === '⌫' && styles.keyBackspace]}
-                  onPress={() => handleKey(key)}
-                  activeOpacity={0.6}>
-                  <Text style={[styles.keyText, key === '⌫' && styles.keyBackspaceText]}>
-                    {key}
-                  </Text>
-                </TouchableOpacity>
-              ),
-            )}
-          </View>
-        ))}
-      </View>
+      {isProcessing ? (
+        <ActivityIndicator style={styles.spinner} size="large" color="#007AFF" />
+      ) : (
+        <View style={styles.keypad}>
+          {KEYPAD.map((row, rowIdx) => (
+            <View key={rowIdx} style={styles.keypadRow}>
+              {row.map((key, colIdx) => {
+                if (key === null) {
+                  if (showBiometricButton) {
+                    return (
+                      <TouchableOpacity
+                        key={colIdx}
+                        style={styles.key}
+                        onPress={attemptBiometrics}
+                        activeOpacity={0.6}>
+                        <Image
+                          source={
+                            biometryType === 'FaceID'
+                              ? BiometricImages.faceId
+                              : BiometricImages.fingerprint
+                          }
+                          style={styles.biometricIcon}
+                        />
+                      </TouchableOpacity>
+                    );
+                  }
+                  return <View key={colIdx} style={styles.keyEmpty} />;
+                }
+                return (
+                  <TouchableOpacity
+                    key={colIdx}
+                    style={[styles.key, key === '⌫' && styles.keyBackspace]}
+                    onPress={() => handleKey(key)}
+                    activeOpacity={0.6}>
+                    <Text style={[styles.keyText, key === '⌫' && styles.keyBackspaceText]}>
+                      {key}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -140,6 +254,9 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     marginBottom: 8,
   },
+  spinner: {
+    marginTop: 48,
+  },
   keypad: {
     marginTop: 24,
     gap: 12,
@@ -178,5 +295,10 @@ const styles = StyleSheet.create({
   keyEmpty: {
     width: 78,
     height: 78,
+  },
+  biometricIcon: {
+    width: 32,
+    height: 32,
+    tintColor: '#007AFF',
   },
 });
