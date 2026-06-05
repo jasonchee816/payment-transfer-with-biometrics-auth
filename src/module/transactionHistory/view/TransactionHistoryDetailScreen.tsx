@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -6,9 +5,11 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootRoutes } from '../../main/constants/routes';
+import { TransactionHistoryRoutes } from '../constants';
 
-type Props = NativeStackScreenProps<Main.RootStackParamList, 'TransactionHistoryDetail'>;
+type Props = NativeStackScreenProps<Main.TransactionHistoryStackParamList, typeof TransactionHistoryRoutes.TransactionHistoryDetail>;
 
 export default function TransactionHistoryDetailScreen({ navigation, route }: Props) {
   const { id, name, date, amount, type } = route.params;
@@ -41,7 +42,11 @@ export default function TransactionHistoryDetailScreen({ navigation, route }: Pr
 
       <TouchableOpacity
         style={styles.transferButton}
-        onPress={() => navigation.navigate('Transfer')}>
+        onPress={() =>
+          navigation
+            .getParent<NativeStackNavigationProp<Main.RootStackParamList>>()
+            ?.navigate(RootRoutes.Transfer)
+      }>
         <Text style={styles.transferButtonText}>Send Again</Text>
       </TouchableOpacity>
     </ScrollView>

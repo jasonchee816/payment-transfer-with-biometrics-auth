@@ -5,10 +5,20 @@ declare namespace TransactionHistory {
     date: string;
     amount: string;
     type: 'sent' | 'received';
-  };
+  }
 
-  interface FetchTransactionsResponse {
-    transactions: Transaction[];
-    totalSent: string;
-  };
+  declare namespace Api {
+    interface FetchTransactionsParams {
+      page: number;
+      limit: number;
+    }
+
+    interface FetchTransactionsResponse {
+      transactions: Transaction[];
+      totalSent: string;
+      page: number;
+      hasNextPage: boolean;
+      total: number;
+    }
+  }
 }

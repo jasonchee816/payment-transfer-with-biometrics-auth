@@ -1,6 +1,8 @@
 import ALL_TRANSACTIONS from '../data/transactions.json';
 
-export const FETCH_TRANSACTIONS = 'fetchTransactions';
+export const TransactionHistoryApiRoutes = {
+  fetchTransactions: 'fetchTransactions',
+} as const;
 
 const PAGE_SIZE_DEFAULT = 20;
 const SIMULATED_DELAY_MS = 800;

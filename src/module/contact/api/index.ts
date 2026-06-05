@@ -1,4 +1,6 @@
-export const SEARCH_DUITNOW = 'searchDuitNow';
+export const ContactApiRoutes = {
+  searchDuitNow: 'searchDuitNow',
+} as const;
 
 const MOCK_DUITNOW_DIRECTORY: Record<string, Contact.DuitNowResult> = {
   '0123456789': {

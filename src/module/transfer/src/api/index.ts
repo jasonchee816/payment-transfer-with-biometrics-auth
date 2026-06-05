@@ -1,5 +1,9 @@
 import type { TransferRequest, TransferResponse } from '../../types';
 
+export const TransferApiRoutes = {
+  submitTransfer: 'submitTransfer',
+} as const;
+
 const SIMULATED_DELAY_MS = 1500;
 
 export function submitTransfer(request: TransferRequest): Promise<TransferResponse> {

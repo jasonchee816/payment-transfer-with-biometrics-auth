@@ -1,4 +1,4 @@
-import React from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,45 +10,55 @@ import {
   Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useMutation } from '@tanstack/react-query';
-import { submitTransfer } from '../src/api';
+import { useSubmitTransfer } from '../hooks/mutation/useSubmitTransfer';
 import { useDebugStore } from '../../debug/hooks/DebugStore';
+import { TransferRoutes } from '../constants';
 import FixedDecimalCurrencyInput from '../../../component/FixedDecimalCurrencyInput';
 import type { FixedDecimalCurrencyInputRef } from '../../../component/FixedDecimalCurrencyInput';
+import { usePinCodeCallbacks } from '../../biometric/store/PinCodeCallbackContext';
 
-type Props = NativeStackScreenProps<Main.TransferStackParamList, 'TransferForm'>;
+type Props = NativeStackScreenProps<Main.TransferStackParamList, typeof TransferRoutes.TransferForm>;
 
 export default function TransferScreen({ navigation, route }: Props) {
   const { recipientId, recipientName } = route.params;
-  const [amount, setAmount] = React.useState(0);
-  const [note, setNote] = React.useState('');
+  const [amount, setAmount] = useState(0);
+  const [note, setNote] = useState('');
   const { flags } = useDebugStore();
-  const currencyInputRef = React.useRef<FixedDecimalCurrencyInputRef>(null);
+  const currencyInputRef = useRef<FixedDecimalCurrencyInputRef>(null);
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: submitTransfer,
-    onSuccess: response => {
-      navigation.navigate('PinCode', {
-        transactionId: response.transactionId,
-        recipientName,
-        amount: amount.toFixed(2),
-      });
-    },
-    onError: error => {
-      Alert.alert(
-        'Transfer Error',
-        error instanceof Error ? error.message : 'Something went wrong.',
-      );
-    },
-  });
+  const { mutateAsync, isPending } = useSubmitTransfer();
+  const { register } = usePinCodeCallbacks();
 
   const handleContinue = () => {
-    mutate({
+    const transferRequest = {
       recipientId,
       recipientName,
       amount,
       note: note || undefined,
       simulateFailure: flags.simulateTransferFailure,
+    };
+
+    register({
+      onSuccess: async () => {
+        try {
+          const response = await mutateAsync(transferRequest);
+          navigation.navigate(TransferRoutes.TransferSuccess, {
+            transactionId: response.transactionId,
+            recipientName,
+            amount: amount.toFixed(2),
+          });
+        } catch (error) {
+          Alert.alert(
+            'Transfer Failed',
+            error instanceof Error ? error.message : 'Something went wrong.',
+          );
+        }
+      },
+    });
+
+    navigation.navigate(TransferRoutes.PinCode, {
+      recipientName,
+      amount: amount.toFixed(2),
     });
   };
 

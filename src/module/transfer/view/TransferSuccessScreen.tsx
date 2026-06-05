@@ -1,23 +1,26 @@
-import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootRoutes } from '../../main/constants/routes';
+import { TransferRoutes } from '../constants';
 
-type Props = NativeStackScreenProps<Main.TransferStackParamList, 'TransferSuccess'>;
+type Props = NativeStackScreenProps<Main.TransferStackParamList, typeof TransferRoutes.TransferSuccess>;
 
 export default function TransferSuccessScreen({ navigation, route }: Props) {
   const { transactionId, recipientName, amount } = route.params;
 
   const handleDone = () => {
-    navigation.getParent()?.navigate('Home');
+    navigation
+      .getParent<NativeStackNavigationProp<Main.RootStackParamList>>()
+      ?.popToTop();
   };
 
   const handleViewHistory = () => {
-    navigation.getParent()?.navigate('TransactionHistory');
+    navigation.getParent()?.navigate(RootRoutes.TransactionHistory);
   };
 
   return (

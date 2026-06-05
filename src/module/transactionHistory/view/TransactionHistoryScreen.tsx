@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,47 +8,44 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useQuery } from '@tanstack/react-query';
-import { fetchTransactions } from '../src/api';
+import { TransactionHistoryRoutes } from '../constants';
+import { useTransactions } from '../hooks/query/useTransactions';
+import TransactionItem from './TransactionItem';
 
-type Props = NativeStackScreenProps<Main.RootStackParamList, 'TransactionHistory'>;
+type Props = NativeStackScreenProps<Main.TransactionHistoryStackParamList, typeof TransactionHistoryRoutes.TransactionHistoryList>;
 
 function Separator() {
   return <View style={styles.separator} />;
 }
 
-function TransactionItem({
-  item,
-  onPress,
-}: {
-  item: TransactionHistory.Transaction;
-  onPress: (item: TransactionHistory.Transaction) => void;
-}) {
-  const isSent = item.type === 'sent';
-  return (
-    <TouchableOpacity style={styles.transactionItem} onPress={() => onPress(item)}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{item.name[0]}</Text>
-      </View>
-      <View style={styles.transactionDetails}>
-        <Text style={styles.transactionName}>{item.name}</Text>
-        <Text style={styles.transactionDate}>{item.date}</Text>
-      </View>
-      <View style={styles.transactionRight}>
-        <Text style={[styles.transactionAmount, isSent ? styles.sent : styles.received]}>
-          {isSent ? '-' : '+'}{item.amount}
-        </Text>
-        <Text style={styles.chevron}>›</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 export default function TransactionHistoryScreen({ navigation }: Props) {
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: fetchTransactions,
-  });
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useTransactions();
+
+  const transactions = useMemo(
+    () => data?.pages.flatMap(p => p.transactions) ?? [],
+    [data],
+  );
+
+  const handleItemPress = useCallback(
+    (item: TransactionHistory.Transaction) => {
+      navigation.navigate(TransactionHistoryRoutes.TransactionHistoryDetail, item);
+    },
+    [navigation],
+  );
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (isLoading) {
     return (
@@ -72,27 +69,29 @@ export default function TransactionHistoryScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <FlatList
-        data={data?.transactions ?? []}
+        data={transactions}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <TransactionItem
             item={item}
-            onPress={t => navigation.navigate('TransactionHistoryDetail', t)}
+            onPress={handleItemPress}
+            style={[
+              index === 0 && styles.itemFirst,
+              index === transactions.length - 1 && styles.itemLast,
+            ]}
           />
         )}
         ItemSeparatorComponent={Separator}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Total Sent</Text>
-            <Text style={styles.summaryAmount}>{data?.totalSent}</Text>
-            <TouchableOpacity
-              style={styles.transferButton}
-              onPress={() => navigation.navigate('Transfer')}>
-              <Text style={styles.transferButtonText}>New Transfer</Text>
-            </TouchableOpacity>
-          </View>
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={styles.footer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+            </View>
+          ) : null
         }
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -160,62 +159,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  transactionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 14,
+  itemFirst: {
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#E5E5EA',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#3C3C43',
-  },
-  transactionDetails: {
-    flex: 1,
-  },
-  transactionName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    marginBottom: 2,
-  },
-  transactionDate: {
-    fontSize: 13,
-    color: '#8E8E93',
-  },
-  transactionRight: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  transactionAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  chevron: {
-    fontSize: 18,
-    color: '#C7C7CC',
-    alignSelf: 'center',
-  },
-  sent: {
-    color: '#FF3B30',
-  },
-  received: {
-    color: '#34C759',
+  itemLast: {
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#E5E5EA',
     marginLeft: 70,
+  },
+  footer: {
+    paddingVertical: 16,
+    alignItems: 'center',
   },
 });

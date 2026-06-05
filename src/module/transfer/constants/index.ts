@@ -1,4 +1,4 @@
-import { SUBMIT_TRANSFER } from '../src/api';
+import { TransferApiRoutes } from '../src/api';
 
 export const TransferRoutes = {
   ContactList: 'Transfer/ContactList',
@@ -9,8 +9,8 @@ export const TransferRoutes = {
 
 const TRANSFER_BASE_KEY = 'Transfer';
 
-// TODO: Include userId as part of each key (e.g. [TRANSFER_BASE_KEY, userId, SUBMIT_TRANSFER])
+// TODO: Include userId as part of each key (e.g. [TRANSFER_BASE_KEY, userId, TransferApiRoutes.submitTransfer])
 // to prevent cached data from leaking across different authenticated users.
 export const TransferQueryKeys = {
-  submitTransfer: [TRANSFER_BASE_KEY, SUBMIT_TRANSFER],
+  submitTransfer: [TRANSFER_BASE_KEY, TransferApiRoutes.submitTransfer],
 } as const;
