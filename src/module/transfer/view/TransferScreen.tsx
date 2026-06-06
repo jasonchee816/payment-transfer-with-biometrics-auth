@@ -17,21 +17,27 @@ import { useAccountBalance } from '../../account/hooks/query/useAccountBalance';
 import FixedDecimalCurrencyInput from '../../../component/FixedDecimalCurrencyInput';
 import type { FixedDecimalCurrencyInputRef } from '../../../component/FixedDecimalCurrencyInput';
 import { usePinCodeCallbacks } from '../../biometric/store/PinCodeCallbackContext';
+import { useRefreshControl } from '../../../hooks/useRefreshControl';
 
 type Props = NativeStackScreenProps<Main.TransferStackParamList, typeof TransferRoutes.TransferForm>;
 
 export default function TransferScreen({ navigation, route }: Props) {
-  const { recipientId, recipientName } = route.params;
+  const { recipientId, recipientName, recipientPhone } = route.params;
   const [amount, setAmount] = useState(0);
   const [note, setNote] = useState('');
   const { flags } = useDebugStore();
   const currencyInputRef = useRef<FixedDecimalCurrencyInputRef>(null);
 
   const { mutateAsync, isPending } = useSubmitTransfer();
-  const { register } = usePinCodeCallbacks();
-  const { data: availableBalance } = useAccountBalance({
+  const { register: registerPinCodeCallbacks } = usePinCodeCallbacks();
+  const {
+    data: availableBalance,
+    isRefetching: isBalanceRefetching,
+    refetch: refetchBalance,
+  } = useAccountBalance({
     select: data => data?.balance.available,
   });
+  const { refreshControl } = useRefreshControl(isBalanceRefetching, refetchBalance);
 
   const isOverBalance = availableBalance !== undefined && amount > availableBalance;
 
@@ -39,12 +45,13 @@ export default function TransferScreen({ navigation, route }: Props) {
     const transferRequest = {
       recipientId,
       recipientName,
+      recipientPhone,
       amount,
       note: note || undefined,
       simulateFailure: flags.simulateTransferFailure,
     };
 
-    register({
+    registerPinCodeCallbacks({
       onSuccess: async () => {
         try {
           const response = await mutateAsync(transferRequest);
@@ -58,6 +65,7 @@ export default function TransferScreen({ navigation, route }: Props) {
             'Transfer Failed',
             error instanceof Error ? error.message : 'Something went wrong.',
           );
+          navigation.goBack();
         }
       },
     });
@@ -74,13 +82,15 @@ export default function TransferScreen({ navigation, route }: Props) {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled">
+      keyboardShouldPersistTaps="handled"
+      refreshControl={refreshControl}>
 
       {/* Recipient row — tap Change to go back to ContactList */}
       <View style={styles.recipientCard}>
         <View style={styles.recipientInfo}>
           <LabelText weight="500">To</LabelText>
           <BoldText size={16}>{recipientName}</BoldText>
+          {recipientPhone ? <CaptionText>{recipientPhone}</CaptionText> : null}
         </View>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <BodyText weight="500" color="#007AFF">Change</BodyText>

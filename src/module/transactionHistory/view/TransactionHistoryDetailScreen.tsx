@@ -37,6 +37,7 @@ export default function TransactionHistoryDetailScreen({ route }: Props) {
         <RowDivider />
         <DetailRow label="Reference" value={id} mono />
       </View>
+
     </ScrollView>
   );
 }

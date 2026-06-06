@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { BodyText, BoldText, CaptionText, HeadingText } from '../../../component/AppText';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootRoutes } from '../../main/constants/routes';
 import { TransferRoutes } from '../constants';
 
 type Props = NativeStackScreenProps<Main.TransferStackParamList, typeof TransferRoutes.TransferSuccess>;
@@ -17,10 +16,6 @@ export default function TransferSuccessScreen({ navigation, route }: Props) {
     navigation
       .getParent<NativeStackNavigationProp<Main.RootStackParamList>>()
       ?.popToTop();
-  };
-
-  const handleViewHistory = () => {
-    navigation.getParent()?.navigate(RootRoutes.TransactionHistory);
   };
 
   return (
@@ -54,9 +49,6 @@ export default function TransferSuccessScreen({ navigation, route }: Props) {
       <View style={styles.actions}>
         <TouchableOpacity style={styles.primaryButton} onPress={handleDone}>
           <BoldText size={17} color="#FFFFFF">Done</BoldText>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryButton} onPress={handleViewHistory}>
-          <BoldText size={17} color="#007AFF">View History</BoldText>
         </TouchableOpacity>
       </View>
     </View>

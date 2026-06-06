@@ -1,22 +1,21 @@
-import { Fragment } from 'react';
 import {
   View,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  RefreshControl,
   useWindowDimensions,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootRoutes } from '../../main/constants/routes';
 import { useAccountBalance } from '../../account/hooks/query/useAccountBalance';
+import { useRefreshControl } from '../../../hooks/useRefreshControl';
+import { useTransactions } from '../../transactionHistory/hooks/query/useTransactions';
+import TransactionItem from '../../transactionHistory/view/TransactionItem';
 import SkeletonLoader from '../../../component/SkeletonLoader';
 import {
   HeadingText,
   TitleText,
   BodyText,
-  BoldText,
-  CaptionText,
   TextColors,
 } from '../../../component/AppText';
 
@@ -33,12 +32,6 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'History', icon: '→', screen: RootRoutes.TransactionHistory },
 ];
 
-const RECENT = [
-  { id: '1', name: 'Alice Johnson', initials: 'AJ', color: '#FF6B6B', amount: '-$120.00', date: 'Today' },
-  { id: '2', name: 'Bob Smith', initials: 'BS', color: '#4ECDC4', amount: '+$50.00', date: 'Yesterday' },
-  { id: '3', name: 'Carol White', initials: 'CW', color: '#45B7D1', amount: '-$230.00', date: 'Jun 2' },
-];
-
 export default function HomeScreen({ navigation }: Props) {
   const { width: windowWidth } = useWindowDimensions();
   // content padding 16 each side + card padding 24 each side
@@ -52,6 +45,10 @@ export default function HomeScreen({ navigation }: Props) {
   } = useAccountBalance({
     select: data => data?.balance.available,
   });
+  const { refreshControl } = useRefreshControl(isBalanceRefetching, refetchBalance);
+
+  const { data: transactionsData } = useTransactions();
+  const recentTransactions = transactionsData?.pages[0]?.transactions.slice(0, 3) ?? [];
   const formattedBalance =
     availableBalance
       ? `RM ${availableBalance.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -61,13 +58,7 @@ export default function HomeScreen({ navigation }: Props) {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={isBalanceRefetching}
-          onRefresh={refetchBalance}
-          tintColor="#007AFF"
-        />
-      }>
+      refreshControl={refreshControl}>
       <View style={styles.balanceCard}>
         <BodyText size={14} color="rgba(255,255,255,0.75)" style={styles.balanceLabel}>
           Available Balance
@@ -112,30 +103,14 @@ export default function HomeScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.recentList}>
-        {RECENT.map((item, index) => {
-          const isSent = item.amount.startsWith('-');
-          return (
-            <Fragment key={item.id}>
-              <View style={styles.recentItem}>
-                <View style={[styles.recentAvatar, { backgroundColor: item.color }]}>
-                  <BoldText weight="700" color={TextColors.inverse}>
-                    {item.initials}
-                  </BoldText>
-                </View>
-                <View style={styles.recentInfo}>
-                  <BodyText weight="500" style={styles.recentName}>
-                    {item.name}
-                  </BodyText>
-                  <CaptionText>{item.date}</CaptionText>
-                </View>
-                <BoldText style={isSent ? styles.sent : styles.received}>
-                  {item.amount}
-                </BoldText>
-              </View>
-              {index < RECENT.length - 1 && <View style={styles.divider} />}
-            </Fragment>
-          );
-        })}
+        {recentTransactions.map((item, index) => (
+          <TransactionItem
+            key={item.id}
+            item={item}
+            onPress={() => navigation.navigate(RootRoutes.TransactionHistory)}
+            style={index < recentTransactions.length - 1 ? styles.itemDivider : undefined}
+          />
+        ))}
       </View>
     </ScrollView>
   );
@@ -206,34 +181,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
   },
-  recentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-  },
-  recentAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  recentInfo: {
-    flex: 1,
-  },
-  recentName: {
-    marginBottom: 2,
-  },
-  sent: {
-    color: '#FF3B30',
-  },
-  received: {
-    color: '#34C759',
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E5EA',
-    marginLeft: 70,
+  itemDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
   },
 });

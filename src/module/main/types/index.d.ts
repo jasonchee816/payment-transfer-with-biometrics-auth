@@ -21,6 +21,7 @@ declare namespace Main {
     'Transfer/TransferForm': {
       recipientId: string;
       recipientName: string;
+      recipientPhone?: string;
     };
     'Transfer/PinCode': {
       recipientName: string;
