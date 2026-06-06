@@ -13,7 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { isSensorAvailable, authenticateWithOptions, BiometricStrength } from '@sbaiahmed1/react-native-biometrics';
 import type { BiometricSensorInfo } from '@sbaiahmed1/react-native-biometrics';
 import { TransferRoutes } from '../../transfer/constants';
-import { CORRECT_PIN, KEYPAD, PIN_LENGTH } from '../constants';
+import { KEYPAD, PIN_LENGTH } from '../constants';
 import { BiometricImages } from '../constants/images';
 import { usePinCodeCallbacks } from '../store/PinCodeCallbackContext';
 import {
@@ -22,6 +22,7 @@ import {
   isPinLocked,
   MAX_PIN_ATTEMPTS,
   resetPinAttempts,
+  verifyPin,
 } from '../storage/pinStorage';
 
 type BiometryType = NonNullable<BiometricSensorInfo['biometryType']>;
@@ -116,12 +117,12 @@ export default function PinCodeScreen({ navigation, route }: Props) {
     setPin(next);
 
     if (next.length === PIN_LENGTH) {
-      verifyPin(next);
+      handleVerifyPin(next);
     }
   };
 
-  const verifyPin = (code: string) => {
-    if (code === CORRECT_PIN) {
+  const handleVerifyPin = (code: string) => {
+    if (verifyPin(code)) {
       handleSuccess();
       return;
     }
