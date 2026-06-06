@@ -17,8 +17,8 @@ import { HeadingText } from './AppText';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatDollars(amount: number): string {
-  return `$${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+function formatAmount(amount: number): string {
+  return `RM ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 }
 
 function scaleAndRound(value: number): number {
@@ -47,12 +47,12 @@ type TProps = {
  * Currency input with a fixed decimal point (cash-register style).
  * Input is handled in cents and displayed in dollars.
  *
- * | Input   | Display  |
- * |---------|----------|
- * | `1`     | `$0.01`  |
- * | `12`    | `$0.12`  |
- * | `123`   | `$1.23`  |
- * | `1234`  | `$12.34` |
+ * | Input   | Display      |
+ * |---------|--------------|
+ * | `1`     | `RM 0.01`    |
+ * | `12`    | `RM 0.12`    |
+ * | `123`   | `RM 1.23`    |
+ * | `1234`  | `RM 12.34`   |
  */
 export default function FixedDecimalCurrencyInput({
   ref,
@@ -65,7 +65,7 @@ export default function FixedDecimalCurrencyInput({
   const cursorOpacity = useRef(new Animated.Value(0)).current;
 
   const [amountInCents, setAmountInCents] = useState('');
-  const [dollarDisplay, setDollarDisplay] = useState(formatDollars(amount));
+  const [dollarDisplay, setDollarDisplay] = useState(formatAmount(amount));
   const [isFocused, setIsFocused] = useState(false);
 
   useImperativeHandle(ref, () => ({
@@ -80,7 +80,7 @@ export default function FixedDecimalCurrencyInput({
       const dollars = cents / 100;
 
       setAmountInCents(cents === 0 ? '' : String(cents));
-      setDollarDisplay(formatDollars(dollars));
+      setDollarDisplay(formatAmount(dollars));
       setAmount(dollars);
     },
     [setAmount],
@@ -115,7 +115,7 @@ export default function FixedDecimalCurrencyInput({
     const rounded = scaleAndRound(amount);
     const cents = Math.round(rounded * 100);
     setAmountInCents(cents === 0 ? '' : String(cents));
-    setDollarDisplay(formatDollars(rounded));
+    setDollarDisplay(formatAmount(rounded));
   }, [amount]);
 
   return (
