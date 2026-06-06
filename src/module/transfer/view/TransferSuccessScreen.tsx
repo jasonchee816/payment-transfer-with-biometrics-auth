@@ -32,7 +32,7 @@ export default function TransferSuccessScreen({ navigation, route }: Props) {
       <View style={styles.summaryCard}>
         <View style={styles.summaryRow}>
           <BodyText color="#8E8E93">Amount</BodyText>
-          <BoldText>${amount}</BoldText>
+          <BoldText>RM {amount}</BoldText>
         </View>
         <View style={styles.divider} />
         <View style={styles.summaryRow}>
