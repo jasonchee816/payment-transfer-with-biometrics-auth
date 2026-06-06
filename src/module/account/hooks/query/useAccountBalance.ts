@@ -13,8 +13,10 @@ export function useAccountBalance<TData = BalanceResponse>(
   options?: AccountBalanceQueryOptions<TData>,
 ) {
   return useQuery({
+    ...options,
     queryKey: AccountQueryKeys.balance,
     queryFn: fetchBalance,
-    ...options,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    gcTime: 1000 * 60 * 2, // 2 minutes
   });
 }

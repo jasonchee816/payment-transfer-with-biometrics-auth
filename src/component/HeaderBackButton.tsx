@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { BodyText } from './AppText';
 
 type Props = {
@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: Platform.OS === 'android' ? 16 : 0,
   },
   chevron: {
     lineHeight: 30,
