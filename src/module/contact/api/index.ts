@@ -1,6 +1,7 @@
 export const ContactApiRoutes = {
   checkAppUser: 'checkAppUser',
   searchUsers: 'searchUsers',
+  getUserInfoViaUserId: 'getUserInfoViaUserId',
 } as const;
 
 const MOCK_APP_USERS: Contact.AppUser[] = [
@@ -29,6 +30,17 @@ const MOCK_APP_USERS: Contact.AppUser[] = [
   { userId: 'usr-023', displayName: 'Tech Solutions Sdn Bhd', phoneNumber: '0111234567' },
   { userId: 'usr-024', displayName: 'Hafiz Rahman', phoneNumber: '0167894321' },
 ];
+
+export async function getUserInfoViaUserId(userId: string): Promise<Contact.AppUser> {
+  await new Promise<void>(resolve => setTimeout(resolve, 300));
+
+  const user = MOCK_APP_USERS.find(u => u.userId === userId);
+  if (!user) {
+    throw new Error(`No user found for ID: ${userId}`);
+  }
+
+  return user;
+}
 
 export async function checkAppUser(phoneNumber: string): Promise<Contact.AppUser> {
   await new Promise<void>(resolve => setTimeout(resolve, 600));

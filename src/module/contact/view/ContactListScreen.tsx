@@ -33,7 +33,7 @@ export default function ContactListScreen({ navigation }: Props) {
   const phoneInputRef = useRef<TextInput>(null);
 
   const { contacts, isLoading, permissionDenied } = useContactList(query);
-  const { users: recentUsers } = useRecentTransfers();
+  const { data: recentUsers = [] } = useRecentTransfers();
   const searchUser = useSearchUser();
   const checkAppUser = useCheckAppUser();
 

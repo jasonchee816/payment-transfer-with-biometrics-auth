@@ -4,6 +4,7 @@ import { TransferQueryKeys } from '../../constants';
 import { AccountQueryKeys } from '../../../account/constants';
 import { TransactionHistoryQueryKeys } from '../../../transactionHistory/constants';
 import { recordRecentTransfer } from '../../../contact/storage/recentTransferStorage';
+import { ContactQueryKeys } from '../../../contact/constants';
 import type { TransferRequest } from '../../types';
 
 export function useSubmitTransfer() {
@@ -13,13 +14,10 @@ export function useSubmitTransfer() {
     mutationKey: TransferQueryKeys.submitTransfer,
     mutationFn: submitTransfer,
     onSuccess: (_data, variables: TransferRequest) => {
-      recordRecentTransfer({
-        userId: variables.recipientId,
-        displayName: variables.recipientName,
-        phoneNumber: variables.recipientPhone ?? '',
-      });
+      recordRecentTransfer(variables.recipientId);
       queryClient.invalidateQueries({ queryKey: AccountQueryKeys.balance });
       queryClient.invalidateQueries({ queryKey: TransactionHistoryQueryKeys.transactions });
+      queryClient.invalidateQueries({ queryKey: ContactQueryKeys.recentTransfersBase });
     },
   });
 }
