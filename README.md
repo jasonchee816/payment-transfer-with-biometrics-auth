@@ -1,97 +1,58 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# PaymentTransferWithBiometricsAuth
 
-# Getting Started
+A React Native demo app showcasing a payment transfer flow with biometric and PIN authentication.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Demo
 
-## Step 1: Start Metro
+| iOS | Android |
+|-----|---------|
+|  |  |
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+> To get a hosted URL: open a GitHub issue or PR on this repo, drag each `.mp4` into the comment box, wait for it to upload, then copy the generated URL and replace the placeholders above.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+---
+
+## Prerequisites
+
+- **Node.js** `>= 22.11.0` (current LTS recommended — tested on `v22.16.0`)
+- **Yarn** (classic v1)
+- React Native environment set up for your target platform — follow the official [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide (includes Xcode for iOS and Android Studio for Android)
+
+## Setup
 
 ```sh
-# Using npm
-npm start
+# Install dependencies
+yarn
 
-# OR using Yarn
-yarn start
+# iOS — install CocoaPods
+cd ios && pod install && cd ..
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+## Running the App
 
 ```sh
-# Using npm
-npm run android
+# Start Metro
+yarn start
 
-# OR using Yarn
+# Run on iOS
+yarn ios
+
+# Run on Android
 yarn android
 ```
 
-### iOS
+## Assumptions
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+The following simplifications have been made intentionally for the scope of this demo:
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+- **All users are bank app users.** Inter-bank transfers (e.g. DuitNow interbank) are not considered. A contact is either a registered app user or not — no external payment rail is involved.
 
-```sh
-bundle install
-```
+- **Balance and transaction history are invalidated after a successful transfer.** The backend is treated as the source of truth; the UI always refetches rather than optimistically updating local state.
 
-Then, and every time you update your native dependencies, run:
+- **Auth and PIN setup flows are skipped.** The correct PIN is pre-seeded on first launch (`111111`). There is no registration, login, or PIN change flow.
 
-```sh
-bundle exec pod install
-```
+- **Only the 3 most recent transfer recipients are stored.** The list is capped at 3 and deduplicates by user — transferring to an existing recipient promotes them to the top.
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+- **Recent transfers persist locally (MMKV), but only the user ID is stored.** Display name and phone number are resolved on demand via the `getUserInfoViaUserId` API, minimising the PII footprint on-device. The list persists across sessions on the same device but is not synced to a backend or across devices.
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- **The PIN hash is stored locally (MMKV).** Ideally PIN verification should be handled server-side. The local hash uses SHA-256 with a hardcoded secret — in production the secret must come from a secret manager
