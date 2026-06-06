@@ -6,27 +6,22 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
+  Alert,
+  Modal,
 } from 'react-native';
 import { LabelText, BoldText, CaptionText } from '../../../component/AppText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-
-import { useDuitNowSearch } from '../hooks/mutation/useDuitNowSearch';
+import { openSettings } from 'react-native-permissions';
+import { useContactList } from '../hooks/query/useContactList';
+import { useRecentTransfers } from '../hooks/query/useRecentTransfers';
+import { useSearchUser } from '../hooks/mutation/useSearchUser';
+import { useCheckAppUser } from '../hooks/mutation/useCheckAppUser';
+import { appUserToContact } from '../utils';
 import { TransferRoutes } from '../../transfer/constants';
 import ContactItem, { type Contact } from './ContactItem';
-import DuitNowResultCard from './DuitNowResultCard';
+import UserResultCard from './UserResultCard';
 
 type Props = NativeStackScreenProps<Main.TransferStackParamList, typeof TransferRoutes.ContactList>;
-
-const CONTACTS: Contact[] = [
-  { id: '1', name: 'Alice Johnson', phone: '+1 (555) 234-5678', initials: 'AJ', color: '#FF6B6B' },
-  { id: '2', name: 'Bob Smith',     phone: '+1 (555) 345-6789', initials: 'BS', color: '#4ECDC4' },
-  { id: '3', name: 'Carol White',   phone: '+1 (555) 456-7890', initials: 'CW', color: '#45B7D1' },
-  { id: '4', name: 'David Lee',     phone: '+1 (555) 567-8901', initials: 'DL', color: '#96CEB4' },
-  { id: '5', name: 'Emma Davis',    phone: '+1 (555) 678-9012', initials: 'ED', color: '#FFEAA7' },
-  { id: '6', name: 'Frank Miller',  phone: '+1 (555) 789-0123', initials: 'FM', color: '#DDA0DD' },
-  { id: '7', name: 'Grace Wilson',  phone: '+1 (555) 890-1234', initials: 'GW', color: '#98D8C8' },
-  { id: '8', name: 'Henry Brown',   phone: '+1 (555) 901-2345', initials: 'HB', color: '#F0A500' },
-];
 
 function Separator() {
   return <View style={styles.separator} />;
@@ -37,40 +32,55 @@ export default function ContactListScreen({ navigation }: Props) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const phoneInputRef = useRef<TextInput>(null);
 
-  const duitNowSearch = useDuitNowSearch();
+  const { contacts, isLoading, permissionDenied } = useContactList(query);
+  const { users: recentUsers } = useRecentTransfers();
+  const searchUser = useSearchUser();
+  const checkAppUser = useCheckAppUser();
 
-  const filtered = CONTACTS.filter(c =>
-    c.name.toLowerCase().includes(query.toLowerCase()),
-  );
-
-  const handleSelectContact = (contact: Contact) => {
-    navigation.navigate(TransferRoutes.TransferForm, {
-      recipientId: contact.id,
-      recipientName: contact.name,
-    });
-  };
-
-  const handleSelectDuitNow = (result: Contact.DuitNowResult) => {
-    navigation.navigate(TransferRoutes.TransferForm, {
-      recipientId: result.id,
-      recipientName: result.name,
-    });
-  };
-
-  const handleDuitNowSearch = () => {
+  const handleSearch = () => {
     if (!phoneNumber.trim()) {
       return;
     }
-    duitNowSearch.reset();
-    duitNowSearch.mutate(phoneNumber.trim());
+    searchUser.reset();
+    searchUser.mutate(phoneNumber.trim());
     phoneInputRef.current?.blur();
+  };
+
+  const handleSelectContact = (contact: Contact) => {
+    if (!contact.phone) {
+      Alert.alert('No Phone Number', 'This contact has no phone number on record.');
+      return;
+    }
+    checkAppUser.mutate(contact.phone, {
+      onSuccess: user => {
+        navigation.navigate(TransferRoutes.TransferForm, {
+          recipientId: user.userId,
+          recipientName: user.displayName,
+          recipientPhone: contact.phone,
+        });
+      },
+      onError: error => {
+        Alert.alert(
+          'Not an App User',
+          error instanceof Error ? error.message : 'Could not verify this contact.',
+        );
+      },
+    });
+  };
+
+  const handleSelectRecentUser = (user: Contact.AppUser) => {
+    navigation.navigate(TransferRoutes.TransferForm, {
+      recipientId: user.userId,
+      recipientName: user.displayName,
+      recipientPhone: user.phoneNumber,
+    });
   };
 
   const listHeader = (
     <View>
       <View style={styles.section}>
-        <LabelText size={13} style={styles.sectionLabel}>DuitNow</LabelText>
-        <View style={styles.duitNowRow}>
+        <LabelText size={13} style={styles.sectionLabel}>Search by phone</LabelText>
+        <View style={styles.searchRow}>
           <TextInput
             ref={phoneInputRef}
             style={styles.phoneInput}
@@ -79,17 +89,17 @@ export default function ContactListScreen({ navigation }: Props) {
             value={phoneNumber}
             onChangeText={text => {
               setPhoneNumber(text);
-              duitNowSearch.reset();
+              searchUser.reset();
             }}
             keyboardType="phone-pad"
             returnKeyType="search"
-            onSubmitEditing={handleDuitNowSearch}
+            onSubmitEditing={handleSearch}
           />
           <TouchableOpacity
-            style={[styles.searchButton, duitNowSearch.isPending && styles.searchButtonDisabled]}
-            onPress={handleDuitNowSearch}
-            disabled={duitNowSearch.isPending}>
-            {duitNowSearch.isPending ? (
+            style={[styles.searchButton, searchUser.isPending && styles.searchButtonDisabled]}
+            onPress={handleSearch}
+            disabled={searchUser.isPending}>
+            {searchUser.isPending ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <BoldText color="#FFFFFF">Search</BoldText>
@@ -97,21 +107,42 @@ export default function ContactListScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {duitNowSearch.isError && (
-          <CaptionText color="#FF3B30" style={styles.duitNowError}>
-            {duitNowSearch.error instanceof Error
-              ? duitNowSearch.error.message
+        {searchUser.isError && (
+          <CaptionText color="#FF3B30" style={styles.searchError}>
+            {searchUser.error instanceof Error
+              ? searchUser.error.message
               : 'Something went wrong.'}
           </CaptionText>
         )}
 
-        {duitNowSearch.isSuccess && duitNowSearch.data && (
-          <DuitNowResultCard
-            result={duitNowSearch.data}
-            onPress={() => handleSelectDuitNow(duitNowSearch.data!)}
+        {searchUser.isSuccess && searchUser.data && (
+          <UserResultCard
+            user={searchUser.data}
+            onPress={() => navigation.navigate(TransferRoutes.TransferForm, {
+              recipientId: searchUser.data!.userId,
+              recipientName: searchUser.data!.displayName,
+              recipientPhone: searchUser.data!.phoneNumber,
+            })}
           />
         )}
       </View>
+
+      {recentUsers.length > 0 && !query.trim() && (
+        <View style={styles.section}>
+          <LabelText size={13} style={styles.sectionLabel}>Recent</LabelText>
+          <View style={styles.recentList}>
+            {recentUsers.map((user, index) => (
+              <View key={user.userId}>
+                <ContactItem
+                  contact={appUserToContact(user)}
+                  onPress={() => handleSelectRecentUser(user)}
+                />
+                {index < recentUsers.length - 1 && <View style={styles.separator} />}
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
       <View style={styles.section}>
         <LabelText size={13} style={styles.sectionLabel}>Contacts</LabelText>
@@ -129,23 +160,63 @@ export default function ContactListScreen({ navigation }: Props) {
     </View>
   );
 
+  const listEmpty = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      );
+    }
+    if (permissionDenied) {
+      return (
+        <View style={styles.emptyState}>
+          <View style={styles.permissionDeniedCard}>
+            <BoldText size={16} style={styles.permissionTitle}>
+              Contacts Access Required
+            </BoldText>
+            <CaptionText align="center" style={styles.permissionDescription}>
+              To send money to your contacts, please allow access in your device Settings.
+            </CaptionText>
+            <TouchableOpacity
+              style={styles.openSettingsButton}
+              onPress={() => openSettings('application')}>
+              <BoldText size={15} color="#FFFFFF">Open Settings</BoldText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.emptyState}>
+        <CaptionText size={16}>No contacts found</CaptionText>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={filtered}
+        data={contacts}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <ContactItem contact={item} onPress={handleSelectContact} />
         )}
         ItemSeparatorComponent={Separator}
         ListHeaderComponent={listHeader}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <CaptionText size={16}>No contacts found</CaptionText>
-          </View>
-        }
+        ListEmptyComponent={listEmpty}
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.listContent}
       />
+
+      <Modal visible={checkAppUser.isPending} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <BoldText size={15} style={styles.modalText}>Verifying contact…</BoldText>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -154,6 +225,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
+  },
+  listContent: {
+    paddingBottom: 32,
   },
   section: {
     marginBottom: 8,
@@ -164,7 +238,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
   },
-  duitNowRow: {
+  searchRow: {
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 16,
@@ -189,9 +263,15 @@ const styles = StyleSheet.create({
   searchButtonDisabled: {
     opacity: 0.6,
   },
-  duitNowError: {
+  searchError: {
     paddingHorizontal: 16,
     paddingTop: 8,
+  },
+  recentList: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    marginHorizontal: 16,
+    overflow: 'hidden',
   },
   searchContainer: {
     paddingHorizontal: 16,
@@ -210,7 +290,47 @@ const styles = StyleSheet.create({
     marginLeft: 74,
   },
   emptyState: {
-    padding: 40,
+    padding: 24,
     alignItems: 'center',
+  },
+  permissionDeniedCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 28,
+    gap: 10,
+    width: '100%',
+  },
+  permissionTitle: {
+    textAlign: 'center',
+  },
+  permissionDescription: {
+    lineHeight: 20,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+  },
+  openSettingsButton: {
+    marginTop: 8,
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 28,
+    paddingHorizontal: 36,
+    alignItems: 'center',
+    gap: 14,
+  },
+  modalText: {
+    color: '#3C3C43',
   },
 });

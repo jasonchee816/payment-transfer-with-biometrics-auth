@@ -6,3 +6,4 @@ import { createMMKV } from 'react-native-mmkv';
  * Add new instances here as new storage namespaces are needed.
  */
 export const biometricStorage = createMMKV({ id: 'biometric' });
+export const transferStorage = createMMKV({ id: 'transfer' });

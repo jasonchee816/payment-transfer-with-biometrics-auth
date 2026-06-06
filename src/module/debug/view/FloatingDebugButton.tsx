@@ -4,15 +4,24 @@ import {
   TouchableOpacity,
   Switch,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { BoldText, BodyText, CaptionText, LabelText } from '../../../component/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDebugStore } from '../hooks/DebugStore';
+import { clearRecentTransfers } from '../../contact/storage/recentTransferStorage';
+import { resetPinAttempts } from '../../biometric/storage/pinStorage';
 
 type ErrorScenario = {
   key: keyof Debug.DebugFlags;
   label: string;
   description: string;
+};
+
+type DebugAction = {
+  label: string;
+  description: string;
+  onPress: () => void;
 };
 
 const ERROR_SCENARIOS: ErrorScenario[] = [
@@ -29,6 +38,25 @@ export default function FloatingDebugButton() {
   const [open, setOpen] = useState(false);
 
   const hasActiveFlag = Object.values(flags).some(Boolean);
+
+  const DEBUG_ACTIONS: DebugAction[] = [
+    {
+      label: 'Clear Recent Transfers',
+      description: 'Wipes persisted recent transfer user IDs',
+      onPress: () => {
+        clearRecentTransfers();
+        Alert.alert('Done', 'Recent transfers cleared.');
+      },
+    },
+    {
+      label: 'Clear PIN Attempts',
+      description: 'Resets failed PIN attempt counter',
+      onPress: () => {
+        resetPinAttempts();
+        Alert.alert('Done', 'PIN attempts reset.');
+      },
+    },
+  ];
 
   if (!__DEV__) {
     return null;
@@ -56,6 +84,21 @@ export default function FloatingDebugButton() {
                   thumbColor={flags[scenario.key] ? '#FF3B30' : '#FFFFFF'}
                 />
               </View>
+            </Fragment>
+          ))}
+
+          <View style={styles.panelHeader}>
+            <LabelText size={13} style={styles.panelTitle}>Actions</LabelText>
+          </View>
+          {DEBUG_ACTIONS.map((action, index) => (
+            <Fragment key={action.label}>
+              {index > 0 && <View style={styles.divider} />}
+              <TouchableOpacity style={styles.row} onPress={action.onPress}>
+                <View style={styles.rowLabels}>
+                  <BodyText weight="500" color="#FF9F0A">{action.label}</BodyText>
+                  <CaptionText size={12}>{action.description}</CaptionText>
+                </View>
+              </TouchableOpacity>
             </Fragment>
           ))}
         </View>

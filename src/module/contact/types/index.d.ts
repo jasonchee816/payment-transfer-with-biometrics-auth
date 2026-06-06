@@ -1,10 +1,7 @@
 declare namespace Contact {
-  interface DuitNowResult {
-    id: string;
-    name: string;
+  interface AppUser {
+    userId: string;
+    displayName: string;
     phoneNumber: string;
-    bank: string;
-    accountType: 'personal' | 'business';
-  };
+  }
 }
-
