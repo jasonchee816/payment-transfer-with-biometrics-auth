@@ -6,9 +6,7 @@ A React Native demo app showcasing a payment transfer flow with biometric and PI
 
 | iOS | Android |
 |-----|---------|
-|  |  |
-
-> To get a hosted URL: open a GitHub issue or PR on this repo, drag each `.mp4` into the comment box, wait for it to upload, then copy the generated URL and replace the placeholders above.
+| https://drive.google.com/file/d/1s0Otl9BkR85eXLjkRRAixJ2rZ8pKN8CP/view?usp=sharing | https://drive.google.com/file/d/1QmfxmCpwvwXNTNZlSMkXamYp9xywOAR8/view?usp=sharing |
 
 ---
 
