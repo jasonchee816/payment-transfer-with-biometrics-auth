@@ -3,12 +3,15 @@ import { BodyText, HeadingText } from '../../../component/AppText';
 import LabelValueCard from '../../../component/LabelValueCard';
 import PrimaryButton from '../../../component/PrimaryButton';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useDisableAndroidBackButton } from '../../../hooks/useDisableAndroidBackButton';
 import { TransferRoutes } from '../constants';
 
 type Props = NativeStackScreenProps<Main.TransferStackParamList, typeof TransferRoutes.TransferSuccess>;
 
 export default function TransferSuccessScreen({ navigation, route }: Props) {
   const { transactionId, recipientName, amount } = route.params;
+
+  useDisableAndroidBackButton();
 
   const handleDone = () => {
     navigation

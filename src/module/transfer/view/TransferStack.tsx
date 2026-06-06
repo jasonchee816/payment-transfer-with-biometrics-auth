@@ -35,7 +35,7 @@ export default function TransferStack() {
       <Stack.Screen
         name={TransferRoutes.TransferSuccess}
         component={TransferSuccessScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, gestureEnabled: false }}
       />
     </Stack.Navigator>
     </PinCodeCallbackProvider>
