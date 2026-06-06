@@ -1,9 +1,7 @@
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { BodyText, BoldText, CaptionText, HeadingText } from '../../../component/AppText';
+import { View, StyleSheet } from 'react-native';
+import { BodyText, HeadingText } from '../../../component/AppText';
+import LabelValueCard from '../../../component/LabelValueCard';
+import PrimaryButton from '../../../component/PrimaryButton';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TransferRoutes } from '../constants';
 
@@ -29,27 +27,17 @@ export default function TransferSuccessScreen({ navigation, route }: Props) {
       <HeadingText style={styles.title}>Transfer Sent!</HeadingText>
       <BodyText color="#8E8E93" style={styles.subtitle}>Your money is on its way</BodyText>
 
-      <View style={styles.summaryCard}>
-        <View style={styles.summaryRow}>
-          <BodyText color="#8E8E93">Amount</BodyText>
-          <BoldText>RM {amount}</BoldText>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.summaryRow}>
-          <BodyText color="#8E8E93">To</BodyText>
-          <BoldText>{recipientName}</BoldText>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.summaryRow}>
-          <BodyText color="#8E8E93">Reference</BodyText>
-          <CaptionText weight="500" style={styles.summaryRef}>{transactionId}</CaptionText>
-        </View>
-      </View>
+      <LabelValueCard
+        style={styles.summaryCard}
+        rows={[
+          { label: 'Amount', value: `RM ${amount}` },
+          { label: 'To', value: recipientName },
+          { label: 'Reference', value: transactionId },
+        ]}
+      />
 
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleDone}>
-          <BoldText size={17} color="#FFFFFF">Done</BoldText>
-        </TouchableOpacity>
+        <PrimaryButton label="Done" onPress={handleDone} />
       </View>
     </View>
   );
@@ -88,40 +76,10 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 4,
     marginBottom: 32,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  summaryRef: {
-    fontVariant: ['tabular-nums'],
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E5EA',
-    marginHorizontal: 16,
   },
   actions: {
     width: '100%',
     gap: 12,
-  },
-  primaryButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-  },
-  secondaryButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
   },
 });

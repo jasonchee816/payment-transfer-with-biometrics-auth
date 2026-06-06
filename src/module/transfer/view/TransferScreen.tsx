@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { BodyText, BoldText, CaptionText, LabelText } from '../../../component/AppText';
+import PrimaryButton from '../../../component/PrimaryButton';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSubmitTransfer } from '../hooks/mutation/useSubmitTransfer';
 import { useDebugStore } from '../../debug/hooks/DebugStore';
@@ -128,16 +128,13 @@ export default function TransferScreen({ navigation, route }: Props) {
         multiline
       />
 
-      <TouchableOpacity
-        style={[styles.button, !isReady && styles.buttonDisabled]}
+      <PrimaryButton
+        label="Continue"
         onPress={handleContinue}
-        disabled={!isReady}>
-        {isPending ? (
-          <ActivityIndicator color="#FFFFFF" />
-        ) : (
-          <BoldText size={17} color="#FFFFFF">Continue</BoldText>
-        )}
-      </TouchableOpacity>
+        loading={isPending}
+        disabled={!isReady}
+        style={styles.button}
+      />
     </ScrollView>
   );
 }
@@ -198,13 +195,6 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   button: {
-    backgroundColor: '#007AFF',
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
     marginTop: 12,
-  },
-  buttonDisabled: {
-    backgroundColor: '#C7C7CC',
   },
 });

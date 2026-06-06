@@ -1,5 +1,6 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { BodyText, BoldText, CaptionText } from '../../../component/AppText';
+import Avatar from '../../../component/Avatar';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 type Props = {
@@ -12,9 +13,7 @@ export default function TransactionItem({ item, onPress, style }: Props) {
   const isSent = item.type === 'sent';
   return (
     <TouchableOpacity style={[styles.container, style]} onPress={() => onPress(item)}>
-      <View style={styles.avatar}>
-        <BoldText size={18} color="#3C3C43">{item.name[0]}</BoldText>
-      </View>
+      <Avatar initials={item.name[0]} size={44} />
       <View style={styles.details}>
         <BodyText size={16} weight="500" style={styles.name}>{item.name}</BodyText>
         <CaptionText>{item.date}</CaptionText>
@@ -35,15 +34,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     padding: 14,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#E5E5EA',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+    gap: 12,
   },
   details: {
     flex: 1,

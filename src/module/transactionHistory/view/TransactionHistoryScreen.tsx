@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { BoldText, CaptionText } from '../../../component/AppText';
+import ListSeparator from '../../../component/ListSeparator';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TransactionHistoryRoutes } from '../constants';
 import { useTransactions } from '../hooks/query/useTransactions';
@@ -14,8 +15,8 @@ import TransactionItem from './TransactionItem';
 
 type Props = NativeStackScreenProps<Main.TransactionHistoryStackParamList, typeof TransactionHistoryRoutes.TransactionHistoryList>;
 
-function Separator() {
-  return <View style={styles.separator} />;
+function TransactionSeparator() {
+  return <ListSeparator indent={70} />;
 }
 
 export default function TransactionHistoryScreen({ navigation }: Props) {
@@ -83,7 +84,7 @@ export default function TransactionHistoryScreen({ navigation }: Props) {
             ]}
           />
         )}
-        ItemSeparatorComponent={Separator}
+        ItemSeparatorComponent={TransactionSeparator}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
         ListFooterComponent={
@@ -131,11 +132,6 @@ const styles = StyleSheet.create({
   itemLast: {
     borderBottomLeftRadius: 14,
     borderBottomRightRadius: 14,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E5EA',
-    marginLeft: 70,
   },
   footer: {
     paddingVertical: 16,

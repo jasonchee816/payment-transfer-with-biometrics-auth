@@ -7,9 +7,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  Modal,
 } from 'react-native';
 import { LabelText, BoldText, CaptionText } from '../../../component/AppText';
+import LoadingModal from '../../../component/LoadingModal';
+import ListSeparator from '../../../component/ListSeparator';
+import PrimaryButton from '../../../component/PrimaryButton';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { openSettings } from 'react-native-permissions';
 import { useContactList } from '../hooks/query/useContactList';
@@ -23,9 +25,10 @@ import UserResultCard from './UserResultCard';
 
 type Props = NativeStackScreenProps<Main.TransferStackParamList, typeof TransferRoutes.ContactList>;
 
-function Separator() {
-  return <View style={styles.separator} />;
+function ContactSeparator() {
+  return <ListSeparator />;
 }
+
 
 export default function ContactListScreen({ navigation }: Props) {
   const [query, setQuery] = useState('');
@@ -137,7 +140,7 @@ export default function ContactListScreen({ navigation }: Props) {
                   contact={appUserToContact(user)}
                   onPress={() => handleSelectRecentUser(user)}
                 />
-                {index < recentUsers.length - 1 && <View style={styles.separator} />}
+                {index < recentUsers.length - 1 && <ListSeparator indent={74} />}
               </View>
             ))}
           </View>
@@ -178,11 +181,11 @@ export default function ContactListScreen({ navigation }: Props) {
             <CaptionText align="center" style={styles.permissionDescription}>
               To send money to your contacts, please allow access in your device Settings.
             </CaptionText>
-            <TouchableOpacity
+            <PrimaryButton
+              label="Open Settings"
+              onPress={() => openSettings('application')}
               style={styles.openSettingsButton}
-              onPress={() => openSettings('application')}>
-              <BoldText size={15} color="#FFFFFF">Open Settings</BoldText>
-            </TouchableOpacity>
+            />
           </View>
         </View>
       );
@@ -202,21 +205,14 @@ export default function ContactListScreen({ navigation }: Props) {
         renderItem={({ item }) => (
           <ContactItem contact={item} onPress={handleSelectContact} />
         )}
-        ItemSeparatorComponent={Separator}
+        ItemSeparatorComponent={ContactSeparator}
         ListHeaderComponent={listHeader}
         ListEmptyComponent={listEmpty}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
       />
 
-      <Modal visible={checkAppUser.isPending} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <BoldText size={15} style={styles.modalText}>Verifying contact…</BoldText>
-          </View>
-        </View>
-      </Modal>
+      <LoadingModal visible={checkAppUser.isPending} message="Verifying contact…" />
     </View>
   );
 }
@@ -284,11 +280,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000000',
   },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E5EA',
-    marginLeft: 74,
-  },
   emptyState: {
     padding: 24,
     alignItems: 'center',
@@ -311,26 +302,8 @@ const styles = StyleSheet.create({
   },
   openSettingsButton: {
     marginTop: 8,
-    backgroundColor: '#007AFF',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 32,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 28,
-    paddingHorizontal: 36,
-    alignItems: 'center',
-    gap: 14,
-  },
-  modalText: {
-    color: '#3C3C43',
   },
 });
